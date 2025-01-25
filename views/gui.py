@@ -1,36 +1,28 @@
-from typing import TypedDict
-from enum import Enum, auto
-from .home import homegGui
-
-
-class Guis(TypedDict):
-    homegGui: homegGui
-
+import tkinter as tk
+from views.home import create_home
+from views.row_info import create_row_info
+from views.sub_key_norm import create_sub_key_norm
 
 class Gui:
-    def __init__(self):
-        self.root = Root()
-        self.guis: Guis = {}
-        self.current_gui = None
-        self.add_gui(homegGui, "homegGui")
-        self.guis["homegGui"] = homegGui(self)
+    def __init__(self, root):
+        self.root = root
+        self.root.geometry("1440x1024")
+        self.current_frame = None
+        
+    def show_frame(self, frame_func, controller):
+        if self.current_frame:
+            self.current_frame.destroy()
+        
+        self.current_frame = frame_func(self.root, controller)
+        self.current_frame.pack_propagate(False)  # Disabilita l'auto-ridimensionamento
+        self.current_frame.pack(fill="both", expand=True)
+        self.root.update()  # Forza un refresh immediato
 
-    def get_view(self, name: str) -> BaseView:
-        return self.guis[name]
+    def show_home(self, controller):
+        self.show_frame(create_home, controller)
 
-    def add_gui(self, Gui, name: str) -> None:
-        self.guis[name] = Gui(self.root)
+    def show_row_info(self, controller):
+        self.show_frame(create_row_info, controller)
 
-
-    def switch(self, name: str) -> None:
-        if name not in self.guis:
-            raise ValueError(f"Gui {name} not found")
-        self.new_gui = self.guis[name]
-        if self.current_gui is not None:
-            self.current_gui.tkraise()
-        self.current_gui = self.new_gui
-        self.current_gui.place(x=0, y=0)
-
-
-    def start_mainloop(self):
-        self.root.mainloop()
+    def show_sub_key_norm(self, controller):
+        self.show_frame(create_sub_key_norm, controller)
