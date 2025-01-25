@@ -1,0 +1,88 @@
+# Ambiente virtuale
+venv/
+env/
+.venv/
+.env
+
+# File di configurazione dell'IDE
+.vscode/
+.idea/
+
+# File di compilazione Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+
+# File di log
+*.log
+
+# File di database
+*.sqlite3
+
+# File di immagine generati
+assets/frame_2/*.png
+
+# File di configurazione del sistema operativo
+.DS_Store
+Thumbs.db
+
+# File temporanei
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# File di pacchetti
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+__pycache__/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# File di test coverage
+.coverage
+.tox/
+.nox/
+.cache
+pytest_cache/
+htmlcov/
+.coverage.*
+
+# File di configurazione di Jupyter Notebook
+.ipynb_checkpoints
+
+# File di configurazione di PyInstaller
+*.spec
+
+# File di configurazione di mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# File di configurazione di Pylint
+.pylint.d/
+
+# File di configurazione di Bandit
+.bandit
+
+# File di configurazione di Coverage
+.coverage
+.cache
+coverage.xml
+htmlcov/
+
+# File di configurazione di pytest
+.pytest_cache/
