@@ -6,6 +6,10 @@ import pm4py
 class DataModel:
     def __init__(self):
         self.df = None
+        self.df_size = 0
+        self.nested_columns = []
+        self.df_normalized = None
+        self.df_size_normalized = 0
 
     def set_current_file(self, path):
         try:
@@ -37,8 +41,8 @@ class DataModel:
         if self.df is None:
             return "N/A"
         memory_usage_bytes = self.df.memory_usage(deep=True).sum()
-        memory_usage_kbytes = memory_usage_bytes / 1024
-        return f"{memory_usage_kbytes:.2f} KB"
+        self.df_size = memory_usage_bytes / 1024
+        return f"{self.df_size:.2f} KB"
 
     def contains_nested_data(self, column):
         return any(isinstance(i, list) for i in column)
@@ -47,9 +51,9 @@ class DataModel:
         if self.df is None:
             return None
         else:
-            filtered_columns = [
+            self.nested_columns = [
                 col for col in self.df.columns if self.contains_nested_data(self.df[col])]
-            return filtered_columns
+            return self.nested_columns
 
     def set_default_file(self):
         self.current_file = self.default_file

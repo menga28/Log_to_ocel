@@ -5,14 +5,16 @@ import os
 import sys
 import tkinter as tk
 
+
 def load_asset(path):
     base = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
     assets = os.path.join(base, "assets")
     return os.path.join(assets, path)
 
+
 def create_sub_key_norm(parent, controller):
     window = tk.Frame(parent, bg="#ffffff")
-    
+
     canvas = tk.Canvas(
         window,
         bg="#ffffff",
@@ -25,18 +27,15 @@ def create_sub_key_norm(parent, controller):
     canvas.place(x=0, y=0)
 
     image_1 = tk.PhotoImage(file=load_asset("frame_3/1.png"))
-    canvas.create_image(721, 78, image=image_1)
-
     image_2 = tk.PhotoImage(file=load_asset("frame_3/2.png"))
-    canvas.create_image(158, 73, image=image_2)
-
     image_3 = tk.PhotoImage(file=load_asset("frame_3/3.png"))
-    canvas.create_image(720, 154, image=image_3)
-
     image_4 = tk.PhotoImage(file=load_asset("frame_3/4.png"))
-    canvas.create_image(719, 343, image=image_4)
-
     image_5 = tk.PhotoImage(file=load_asset("frame_3/5.png"))
+
+    canvas.create_image(721, 78, image=image_1)
+    canvas.create_image(158, 73, image=image_2)
+    canvas.create_image(720, 154, image=image_3)
+    canvas.create_image(719, 343, image=image_4)
     canvas.create_image(713, 375, image=image_5)
 
     canvas.create_text(
@@ -70,7 +69,6 @@ def create_sub_key_norm(parent, controller):
     )
     button_2.place(x=854, y=858, width=242, height=76)
 
-    # Mantieni riferimenti alle immagini
     window.image_refs = [
         image_1, image_2, image_3, image_4, image_5,
         button_1_image, button_2_image

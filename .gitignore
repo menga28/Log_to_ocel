@@ -86,3 +86,4 @@ htmlcov/
 
 # File di configurazione di pytest
 .pytest_cache/
+*.pyc

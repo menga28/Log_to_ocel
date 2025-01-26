@@ -4,6 +4,8 @@ import tkinter as tk
 
 def main():
     root = tk.Tk()
+    root.resizable(False, False)
+    root.title("Ocel2 Mapper")
     view = Gui(root)
     controller = Controller(view)
     controller.start()
