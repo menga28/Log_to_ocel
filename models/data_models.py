@@ -1,21 +1,26 @@
 import pandas as pd
 import json
 import pm4py
+import time
 
 
 class DataModel:
     def __init__(self):
         self.df = None
-        self.df_size = 0
+        self.df_size = None
         self.nested_columns = []
         self.df_normalized = None
-        self.df_size_normalized = 0
+        self.df_size_normalized = None
+        self.start_time = None
+        self.end_time = None
 
     def set_current_file(self, path):
         try:
+            self.start_time = time.time()
             with open(path, "r") as file:
                 data = json.load(file)
             self.df = pd.DataFrame(data)
+            self.end_time = time.time()
         except ValueError as e:
             print(f"Errore di struttura JSON: {str(e)}")
             self.df = None
@@ -24,17 +29,12 @@ class DataModel:
             self.df = None
 
     def get_stats(self):
-        if self.df is None:
-            return {
-                'keys': "N/A",
-                'subkeys': "N/A",
-                'stats': "N/A"
-            }
-
+        execution_time = self.end_time - self.start_time if self.start_time and self.end_time else "N/A"
         return {
-            'keys': f"Keys of the log: {(str(self.df.columns.to_list()))}",
-            'subkeys': f"Sub-keys of the log: {self.nested_keys()}",
-            'statistics_df': f"Length of the log: {len(self.df)}, memory usage: {self.get_memory_usage()}"
+            'keys': f"Keys: {str(self.df.columns.to_list()).strip('[]')}",
+            'subkeys': f"Sub-keys: {str(self.nested_keys()).strip('[]')}",
+            'statistics_df': f"Log length: {len(self.df)}, Memory: {self.get_memory_usage()}, Execution time: {execution_time:.5f} seconds",
+            'subkeys_normalization': f"Columns to normalize: {str(self.nested_keys()).strip('[]')}"
         }
 
     def get_memory_usage(self):

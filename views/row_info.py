@@ -79,7 +79,10 @@ def create_row_info(parent, controller):
             font=("Inter", 16 * -1)
         )
     }
-    controller.text_ids = text_ids
+
+    controller.text_ids = {
+        'row_info': text_ids
+    }
 
     window.canvas.create_text(
         111,

@@ -15,7 +15,7 @@ def load_asset(path):
 def create_sub_key_norm(parent, controller):
     window = tk.Frame(parent, bg="#ffffff")
 
-    canvas = tk.Canvas(
+    window.canvas = tk.Canvas(
         window,
         bg="#ffffff",
         width=1440,
@@ -24,7 +24,7 @@ def create_sub_key_norm(parent, controller):
         highlightthickness=0,
         relief="ridge"
     )
-    canvas.place(x=0, y=0)
+    window.canvas.place(x=0, y=0)
 
     image_1 = tk.PhotoImage(file=load_asset("frame_3/1.png"))
     image_2 = tk.PhotoImage(file=load_asset("frame_3/2.png"))
@@ -32,17 +32,32 @@ def create_sub_key_norm(parent, controller):
     image_4 = tk.PhotoImage(file=load_asset("frame_3/4.png"))
     image_5 = tk.PhotoImage(file=load_asset("frame_3/5.png"))
 
-    canvas.create_image(721, 78, image=image_1)
-    canvas.create_image(158, 73, image=image_2)
-    canvas.create_image(720, 154, image=image_3)
-    canvas.create_image(719, 343, image=image_4)
-    canvas.create_image(713, 375, image=image_5)
+    window.canvas.create_image(721, 78, image=image_1)
+    window.canvas.create_image(158, 73, image=image_2)
+    window.canvas.create_image(720, 154, image=image_3)
+    window.canvas.create_image(719, 343, image=image_4)
+    window.canvas.create_image(713, 375, image=image_5)
 
-    canvas.create_text(
+    text_ids_subkey = {
+        "subkeys_normalization": window.canvas.create_text(
+            87,
+            342,
+            anchor="nw",
+            text="Columns to normalize",
+            fill="#000000",
+            font=("Inter", 16 * -1)
+        )
+    }
+
+    controller.text_ids = {
+        'sub_key_norm': text_ids_subkey
+    }
+
+    window.canvas.create_text(
         111,
         257,
         anchor="nw",
-        text="Some sub-keys may need further normalization",
+        text="Select the subkeys you want to normalize",
         fill="#1e1e1e",
         font=("Inter", 24 * -1)
     )
