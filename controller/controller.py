@@ -60,6 +60,8 @@ class Controller:
                     self.text_ids['sub_key_norm']['subkeys_normalization'],
                     text=stats['subkeys_normalization']
                 )
+                if hasattr(self, 'update_columns'):
+                    self.update_columns(self.model.nested_keys())
 
     def handle_subkey_button1(self):
         self.model.update_file("altro_file.json")

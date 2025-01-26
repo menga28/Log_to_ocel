@@ -4,6 +4,7 @@
 import os
 import sys
 import tkinter as tk
+from tkinter.ttk import ttk
 
 
 def load_asset(path):
@@ -52,6 +53,30 @@ def create_sub_key_norm(parent, controller):
     controller.text_ids = {
         'sub_key_norm': text_ids_subkey
     }
+
+    dropdown_frame = tk.Frame(window, bg="#ffffff")
+    dropdown_frame.place(x=80, y=370, width=400, height=200)
+
+    # Listbox per la selezione multipla
+    listbox = tk.Listbox(
+        dropdown_frame,
+        selectmode=tk.MULTIPLE,  # Permette la selezione multipla
+        bg="#ffffff",
+        fg="#000000",
+        font=("Inter", 12),
+        relief="flat",
+        highlightthickness=0
+    )
+    listbox.pack(fill="both", expand=True)
+
+    # Funzione per aggiornare le colonne nel Listbox
+    def update_columns(columns):
+        listbox.delete(0, tk.END)  # Cancella tutte le voci esistenti
+        for col in columns:
+            listbox.insert(tk.END, col)  # Aggiungi ogni colonna alla Listbox
+
+    # Collega l'aggiornamento delle colonne al controller
+    controller.update_columns = update_columns
 
     window.canvas.create_text(
         111,
