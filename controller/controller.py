@@ -1,11 +1,12 @@
 from models.data_models import DataModel
 from tkinter import filedialog
-
+import os
 
 class Controller:
     def __init__(self, view):
         self.view = view
         self.model = DataModel()
+        self.default_file_path= os.path.join("Datasets","pancacke100txs.json")
 
     def start(self):
         self.view.show_home(self)
@@ -21,7 +22,7 @@ class Controller:
             self._update_stats()
 
     def handle_home_button4(self):
-        self.model.set_current_file("default.json")
+        self.model.set_current_file(self.default_file_path)
         self.view.show_row_info(self)
         self._update_stats()
 
@@ -46,11 +47,10 @@ class Controller:
                 text=stats['subkeys']
             )
             canvas.itemconfig(
-                self.text_ids['stats'],
-                text=stats['stats']
+                self.text_ids['statistics_df'],
+                text=stats['statistics_df']
             )
 
-    # Handlers per Sub Key Norm
     def handle_subkey_button1(self):
         self.model.update_file("altro_file.json")
         self.view.show_row_info(self)

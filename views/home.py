@@ -24,7 +24,6 @@ def create_home(parent, controller):
     )
     canvas.place(x=0, y=0)
 
-    # Tutti gli elementi dell'interfaccia vanno QUI DENTRO
     image_6 = tk.PhotoImage(file=load_asset("frame_1/1.png"))
     canvas.create_image(720, 160, image=image_6)
 
@@ -60,7 +59,7 @@ def create_home(parent, controller):
 
     button_3_image = tk.PhotoImage(file=load_asset("frame_1/6.png"))
     button_3 = tk.Button(
-        window,  # IMPORTANTE: usare window come parent
+        window,
         image=button_3_image,
         relief="flat",
         borderwidth=0,
@@ -71,7 +70,7 @@ def create_home(parent, controller):
 
     button_4_image = tk.PhotoImage(file=load_asset("frame_1/7.png"))
     button_4 = tk.Button(
-        window,  # IMPORTANTE: usare window come parent
+        window,
         image=button_4_image,
         relief="flat",
         borderwidth=0,

@@ -2,18 +2,16 @@ import pandas as pd
 import json
 import pm4py
 
+
 class DataModel:
     def __init__(self):
         self.df = None
 
     def set_current_file(self, path):
         try:
-            # Usa orient='columns' per JSON con struttura a colonne
-            self.df = pd.read_json(path, orient='columns')  
-            
-            # Alternativa per JSON non strutturati
-            # self.df = pd.json_normalize(pd.read_json(path))
-            
+            with open(path, "r") as file:
+                data = json.load(file)
+            self.df = pd.DataFrame(data)
         except ValueError as e:
             print(f"Errore di struttura JSON: {str(e)}")
             self.df = None
@@ -30,21 +28,31 @@ class DataModel:
             }
 
         return {
-            'keys': f"{len(self.df)} chiavi rilevate",
-            'subkeys': f"{len(self.df.columns)} sottochiavi",
-            'stats': "Statistiche aggiornate"
+            'keys': f"Keys of the log: {(str(self.df.columns.to_list()))}",
+            'subkeys': f"Sub-keys of the log: {self.nested_keys()}",
+            'statistics_df': f"Length of the log: {len(self.df)}, memory usage: {self.get_memory_usage()}"
         }
+
+    def get_memory_usage(self):
+        if self.df is None:
+            return "N/A"
+        memory_usage_bytes = self.df.memory_usage(deep=True).sum()
+        memory_usage_kbytes = memory_usage_bytes / 1024
+        return f"{memory_usage_kbytes:.2f} KB"
+
+    def contains_nested_data(self, column):
+        return any(isinstance(i, list) for i in column)
+
+    def nested_keys(self):
+        if self.df is None:
+            return None
+        else:
+            filtered_columns = [
+                col for col in self.df.columns if self.contains_nested_data(self.df[col])]
+            return filtered_columns
 
     def set_default_file(self):
         self.current_file = self.default_file
 
     def update_file(self, filename):
         self.current_file = filename
-
-    def get_stats(self):
-        # Esempio, implementa la logica reale
-        return {
-            'keys': "10 chiavi rilevate",
-            'subkeys': "5 sottochiavi",
-            'stats': "Statistiche aggiornate"
-        }
