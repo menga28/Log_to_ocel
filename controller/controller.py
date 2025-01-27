@@ -11,8 +11,8 @@ class Controller:
         self.default_file_path = os.path.join(
             "Datasets", "pancacke100txs.json")
         self.text_ids = {}
-        self.activity_selection = [] 
-        self.timestamp_selection = []  
+        self.activity_selection = []
+        self.timestamp_selection = []
         self.object_types_selection = []
         self.events_attrs_selection = []
         self.object_attrs_selection = {}
@@ -25,14 +25,34 @@ class Controller:
             filetypes=[("JSON files", "*.json")]
         )
         if file_path:
+            # Resetta tutte le selezioni prima di caricare il nuovo file
+            self.activity_selection = []
+            self.timestamp_selection = []
+            self.object_types_selection = []
+            self.events_attrs_selection = []
+            self.object_attrs_selection = {}
+            
             self.model.set_current_file(file_path)
             self.view.show_row_info(self)
             self._update_stats()
+            
+            # Forza l'aggiornamento delle colonne se necessario
+            if hasattr(self, 'update_columns'):
+                self.update_columns(self.model.nested_keys())
 
     def handle_set_default_file(self):
+        self.activity_selection = []
+        self.timestamp_selection = []
+        self.object_types_selection = []
+        self.events_attrs_selection = []
+        self.object_attrs_selection = {}
+        
         self.model.set_current_file(self.default_file_path)
         self.view.show_row_info(self)
         self._update_stats()
+        
+        if hasattr(self, 'update_columns'):
+            self.update_columns(self.model.nested_keys())
 
     # Handlers per Row Info
     def handle_row_button5(self):
@@ -77,7 +97,7 @@ class Controller:
         self.model.normalize_data(selected_indices)
         self.view.show_parameter_selection(self)
         if hasattr(self, 'update_columns'):
-            self.update_columns(self.model.df_normalized.columns)
+            self.update_columns(self.model.df_normalized.columns.tolist())
 
     def handle_ocel_preview(self):
         self.view.show_ocel_preview(self)
@@ -87,6 +107,20 @@ class Controller:
         print("Exporting to OCEL")
 
     def handle_show_ocel_preview(self):
+        if not self.activity_selection:
+            print("Error: Select an Activity column!")
+            return    
+        if not self.timestamp_selection:
+            print("Error: Select a Timestamp column!")
+            return
+
+        print("\nFinal selections:")
+        print(f"Activity: {self.activity_selection}")
+        print(f"Timestamp: {self.timestamp_selection}")
+        print(f"Object Types: {self.object_types_selection}")
+        print(f"Event Attributes: {self.events_attrs_selection}")
+        print(f"Object Attributes: {self.object_attrs_selection}")
+
         self.view.show_ocel_preview(self)
         self._update_stats()
 
