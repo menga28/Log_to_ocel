@@ -58,9 +58,8 @@ def create_parameter_selection(parent, controller):
         font=("Inter", 24 * -1)
     )
 
-    # Dropdowns principali
+    # Rimuovi tutte le funzioni on_*select esistenti e sostituisci con:
 
-    # Dropdowns accoppiati per Object Attributes
     object_type_attrs_frame, object_type_attrs_listbox = create_dropdown(
         window, controller, "Select Object Type",
         is_multiple=False, y_position=618, x_position=300
@@ -91,96 +90,72 @@ def create_parameter_selection(parent, controller):
         is_multiple=False, y_position=338, x_position=300
     )
 
-    def on_activity_select(event):
-        widget = event.widget
-        if getattr(widget, "_is_restoring", False):
-            return
+    def update_single_selection(field, listbox, is_dict=False, key=None):
+        current_selections = listbox.curselection()
 
-        widget.unbind('<<ListboxSelect>>')
-        try:
-            selected = widget.curselection()
-            if selected:
-                controller.activity_selection = [widget.get(selected[0])]
-                print(f"Activity updated: {controller.activity_selection}")
-            elif controller.activity_selection:
-                try:
-                    widget._is_restoring = True
-                    idx = widget.get(0, tk.END).index(
-                        controller.activity_selection[0])
-                    widget.selection_clear(0, tk.END)
-                    widget.selection_set(idx)
-                except (ValueError, IndexError):
-                    controller.activity_selection = []
-                finally:
-                    widget._is_restoring = False
-        finally:
-            widget.bind('<<ListboxSelect>>', on_activity_select)
+        if not current_selections:
+            return  # Non cancellare se non c'è interazione
+
+        if is_dict:
+            if not key:
+                return
+            controller.object_attrs_selection[key] = [
+                listbox.get(i) for i in current_selections]
+        else:
+            setattr(controller, field, [listbox.get(i)
+                    for i in current_selections])
+
+        # Stampa di debug
+        print("\nAggiornamento parziale:")
+        print(f"Campo modificato: {field}")
+        _print_current_state()
+
+    def _print_current_state():
+        print("\nCurrent Selections:")
+        print(f"Activity: {controller.activity_selection}")
+        print(f"Timestamp: {controller.timestamp_selection}")
+        print(f"Object Types: {controller.object_types_selection}")
+        print(f"Event Attributes: {controller.events_attrs_selection}")
+        print(f"Object Attributes: {controller.object_attrs_selection}\n")
+
+    # Funzioni specifiche per ogni dropdown
+    def on_activity_select(event):
+        update_single_selection('activity_selection', activity_listbox)
 
     def on_timestamp_select(event):
-        widget = event.widget
-        if getattr(widget, "_is_restoring", False):
-            return
-
-        widget.unbind('<<ListboxSelect>>')
-        try:
-            selected = widget.curselection()
-            if selected:
-                controller.timestamp_selection = [widget.get(selected[0])]
-                print(f"Timestamp updated: {controller.timestamp_selection}")
-            elif controller.timestamp_selection:
-                try:
-                    widget._is_restoring = True
-                    idx = widget.get(0, tk.END).index(
-                        controller.timestamp_selection[0])
-                    widget.selection_clear(0, tk.END)
-                    widget.selection_set(idx)
-                except (ValueError, IndexError):
-                    controller.timestamp_selection = []
-                finally:
-                    widget._is_restoring = False
-        finally:
-            widget.bind('<<ListboxSelect>>', on_timestamp_select)
+        update_single_selection('timestamp_selection', timestamp_listbox)
 
     def on_object_types_select(event):
-        selected = [object_types_listbox.get(i)
-                    for i in event.widget.curselection()]
-        controller.object_types_selection = selected
-        print(f"Object types selected: {selected}")
+        update_single_selection('object_types_selection', object_types_listbox)
 
     def on_events_attrs_select(event):
-        selected = [events_attrs_listbox.get(i)
-                    for i in event.widget.curselection()]
-        controller.events_attrs_selection = selected
-        print(f"Event attributes selected: {selected}")
+        update_single_selection('events_attrs_selection', events_attrs_listbox)
 
     def on_object_type_select(event):
+        # Aggiorna solo la lista delle colonne disponibili
         selected_type = object_type_attrs_listbox.get(tk.ACTIVE)
-        print(f"Object type selected: {selected_type}")
+        if selected_type and controller.model.df_normalized is not None:
+            object_columns_attrs_listbox.delete(0, tk.END)
+            for col in controller.model.df_normalized.columns:
+                object_columns_attrs_listbox.insert(tk.END, col)
 
-        # Verifica se df_normalized esiste e non è vuoto
-        if controller.model.df_normalized is None or controller.model.df_normalized.empty:
-            print("Warning: df_normalized is None or empty. Cannot update columns.")
-            return
-
-        columns = controller.model.df_normalized.columns.tolist()
-        print(f"Available columns: {columns}")
-
-        object_columns_attrs_listbox.delete(0, tk.END)
-        for col in columns:
-            object_columns_attrs_listbox.insert(tk.END, col)
+            # Ripristina selezioni precedenti per questo tipo
+            if selected_type in controller.object_attrs_selection:
+                for idx, col in enumerate(controller.model.df_normalized.columns):
+                    if col in controller.object_attrs_selection[selected_type]:
+                        object_columns_attrs_listbox.selection_set(idx)
 
     def on_object_columns_select(event):
         selected_type = object_type_attrs_listbox.get(tk.ACTIVE)
-        selected_columns = [object_columns_attrs_listbox.get(
-            i) for i in event.widget.curselection()]
-
         if selected_type:
-            # Aggiungi o aggiorna le colonne per il tipo selezionato
-            controller.object_attrs_selection[selected_type] = selected_columns
-            print(
-                f"Object attributes updated: {controller.object_attrs_selection}")
+            update_single_selection(
+                'object_attrs_selection',
+                object_columns_attrs_listbox,
+                is_dict=True,
+                key=selected_type
+            )
 
-    # Binding eventi
+    # Binding degli eventi
     activity_listbox.bind('<<ListboxSelect>>', on_activity_select)
     timestamp_listbox.bind('<<ListboxSelect>>', on_timestamp_select)
     object_types_listbox.bind('<<ListboxSelect>>', on_object_types_select)
@@ -189,51 +164,47 @@ def create_parameter_selection(parent, controller):
     object_columns_attrs_listbox.bind(
         '<<ListboxSelect>>', on_object_columns_select)
 
-    # Funzione aggiornamento colonne
-
+    # Funzione aggiornamento colonne modificata
     def update_columns(columns):
-        # Controllo corretto per colonne vuote
-        if not columns:  # Ora funziona perché columns è una lista
+        if not columns:
             print("Warning: No columns to update.")
             return
 
-        # Salva le selezioni correnti
-        current_activity = controller.activity_selection
-        current_timestamp = controller.timestamp_selection
+        # Salva lo stato precedente
+        prev_activity = controller.activity_selection
+        prev_timestamp = controller.timestamp_selection
+        prev_object_types = controller.object_types_selection.copy()
+        prev_event_attrs = controller.events_attrs_selection.copy()
+        prev_object_attrs = controller.object_attrs_selection.copy()
 
         # Aggiorna tutte le listbox
-        for listbox in [activity_listbox, timestamp_listbox, object_types_listbox,
-                        events_attrs_listbox, object_type_attrs_listbox]:
+        for listbox in [activity_listbox, timestamp_listbox,
+                        object_types_listbox, events_attrs_listbox,
+                        object_type_attrs_listbox]:
             listbox.delete(0, tk.END)
             for col in columns:
                 listbox.insert(tk.END, col)
 
-        # Ripristina le selezioni con flag _is_restoring
-        if current_activity:
-            try:
-                idx = columns.index(current_activity[0])
-                activity_listbox._is_restoring = True
-                activity_listbox.selection_set(idx)
-                activity_listbox._is_restoring = False
-            except ValueError:
-                pass
+        # Ripristina selezioni solo se esistono nelle nuove colonne
+        def restore_selection(listbox, prev_selection):
+            for item in prev_selection:
+                try:
+                    idx = columns.index(item)
+                    listbox.selection_set(idx)
+                except ValueError:
+                    continue
 
-        if current_timestamp:
-            try:
-                idx = columns.index(current_timestamp[0])
-                timestamp_listbox._is_restoring = True
-                timestamp_listbox.selection_set(idx)
-            except ValueError:
-                pass
-            finally:
-                timestamp_listbox._is_restoring = False
+        restore_selection(activity_listbox, prev_activity)
+        restore_selection(timestamp_listbox, prev_timestamp)
+        restore_selection(object_types_listbox, prev_object_types)
+        restore_selection(events_attrs_listbox, prev_event_attrs)
 
-        # Aggiorna le colonne per gli object attributes
+        # Aggiorna object_attrs_listbox mantenendo le relazioni
         object_columns_attrs_listbox.delete(0, tk.END)
         for col in columns:
             object_columns_attrs_listbox.insert(tk.END, col)
 
-    controller.update_columns = update_columns
+        controller.update_columns = update_columns
 
     # Pulsanti con immagini originali
     button_5_image = tk.PhotoImage(file=load_asset("frame_4/6.png"))
