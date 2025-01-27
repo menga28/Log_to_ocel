@@ -67,7 +67,7 @@ def create_home(parent, controller):
         relief="flat",
         borderwidth=0,
         highlightthickness=0,
-        command=controller.handle_home_button3
+        command=controller.handle_set_file
     )
     button_3.place(x=123, y=724, width=193, height=76)
 
@@ -78,7 +78,7 @@ def create_home(parent, controller):
         relief="flat",
         borderwidth=0,
         highlightthickness=0,
-        command=controller.handle_home_button4
+        command=controller.handle_set_default_file
     )
     button_4.place(x=361, y=724, width=242, height=76)
 

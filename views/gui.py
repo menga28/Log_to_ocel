@@ -26,3 +26,6 @@ class Gui:
 
     def show_sub_key_norm(self, controller):
         self.show_frame(create_sub_key_norm, controller)
+        
+    def show_comp_norm(self, controller):
+        self.show_frame(create_comp_norm, controller)

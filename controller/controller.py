@@ -1,6 +1,7 @@
 from models.data_models import DataModel
 from tkinter import filedialog
 import os
+import pandas as pd
 
 
 class Controller:
@@ -14,8 +15,7 @@ class Controller:
     def start(self):
         self.view.show_home(self)
 
-    # Handlers per Home
-    def handle_home_button3(self):
+    def handle_set_file(self):
         file_path = filedialog.askopenfilename(
             filetypes=[("JSON files", "*.json")]
         )
@@ -24,7 +24,7 @@ class Controller:
             self.view.show_row_info(self)
             self._update_stats()
 
-    def handle_home_button4(self):
+    def handle_set_default_file(self):
         self.model.set_current_file(self.default_file_path)
         self.view.show_row_info(self)
         self._update_stats()
@@ -32,10 +32,6 @@ class Controller:
     # Handlers per Row Info
     def handle_row_button5(self):
         self.view.show_sub_key_norm(self)
-        self._update_stats()
-
-    def handle_row_button6(self):
-        self.model.update_file("nuovo_file.json")
         self._update_stats()
 
     def _update_stats(self):
@@ -62,11 +58,9 @@ class Controller:
                 )
                 if hasattr(self, 'update_columns'):
                     self.update_columns(self.model.nested_keys())
+                if hasattr(self, 'update_treeview') and self.model.df is not None:
+                    self.update_treeview(self.model.df.head(25))
 
     def handle_subkey_button1(self):
-        self.model.update_file("altro_file.json")
         self.view.show_row_info(self)
         self._update_stats()
-
-    def handle_subkey_button2(self):
-        print("Navigazione non implementata")

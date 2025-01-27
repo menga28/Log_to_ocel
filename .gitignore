@@ -88,3 +88,4 @@ htmlcov/
 .pytest_cache/
 *.pyc
 controller/__pycache__/controller.cpython-311.pyc
+*.pyc

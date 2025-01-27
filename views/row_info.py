@@ -127,7 +127,7 @@ def create_row_info(parent, controller):
         relief="flat",
         borderwidth=0,
         highlightthickness=0,
-        command=controller.handle_row_button6
+        command=controller.handle_set_file
     )
     button_6.place(x=854, y=858, width=242, height=76)
 
