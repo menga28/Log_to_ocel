@@ -84,7 +84,7 @@ def create_sub_key_norm(parent, controller):
             window.tree.insert("", "end", values=list(row))
 
         window.tree.update_idletasks()
-        h_scrollbar.pack(side="bottom", fill="x") 
+        h_scrollbar.pack(side="bottom", fill="x")
 
     # Collega l'aggiornamento del Treeview al controller
     controller.update_treeview = update_treeview
@@ -95,7 +95,7 @@ def create_sub_key_norm(parent, controller):
     # Label del dropdown (intestazione cliccabile)
     dropdown_label = tk.Label(
         dropdown_frame,
-        text="Select columns",
+        text="Select columns to normalize",
         bg="#86b2cc",
         fg="#000000",
         font=("Inter", 12, "bold"),
@@ -109,7 +109,7 @@ def create_sub_key_norm(parent, controller):
     listbox_frame.pack_forget()  # Nasconde il frame inizialmente
 
     # Listbox per selezione multipla
-    listbox = tk.Listbox(
+    window.listbox = tk.Listbox(
         listbox_frame,
         selectmode=tk.MULTIPLE,
         bg="#648599",
@@ -118,7 +118,7 @@ def create_sub_key_norm(parent, controller):
         relief="flat",
         highlightthickness=0
     )
-    listbox.pack(fill="both", expand=True)
+    window.listbox.pack(fill="both", expand=True)
 
     # Stato aperto/chiuso
     is_expanded = [False]  # Usa una lista mutabile per preservare lo stato
@@ -139,16 +139,15 @@ def create_sub_key_norm(parent, controller):
 
     # Funzione per aggiornare le colonne nella Listbox
     def update_columns(columns):
-        listbox.delete(0, tk.END)  # Cancella tutte le voci esistenti
+        window.listbox.delete(0, tk.END)  # Cancella tutte le voci esistenti
         for col in columns:
-            listbox.insert(tk.END, col)  # Aggiungi ogni colonna alla Listbox
+            window.listbox.insert(tk.END, col)  # Aggiungi ogni colonna alla Listbox
         # Collassa di default
         if is_expanded[0]:
             toggle_dropdown()
 
     # Collega l'aggiornamento delle colonne al controller
     controller.update_columns = update_columns
-    print("Update columns:", update_columns)
 
     window.canvas.create_text(
         111,
@@ -166,7 +165,7 @@ def create_sub_key_norm(parent, controller):
         relief="flat",
         borderwidth=0,
         highlightthickness=0,
-        command=controller.handle_subkey_button1
+        command=controller.handle_view_parameter_selection
     )
     button_1.place(x=1129, y=858, width=267, height=76)
 

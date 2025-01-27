@@ -2,6 +2,8 @@ import tkinter as tk
 from views.home import create_home
 from views.row_info import create_row_info
 from views.sub_key_norm import create_sub_key_norm
+from views.parameter_selection import create_parameter_selection
+from views.ocel_preview import create_ocel_preview
 
 class Gui:
     def __init__(self, root):
@@ -27,5 +29,8 @@ class Gui:
     def show_sub_key_norm(self, controller):
         self.show_frame(create_sub_key_norm, controller)
         
-    def show_comp_norm(self, controller):
-        self.show_frame(create_comp_norm, controller)
+    def show_parameter_selection(self, controller):
+        self.show_frame(create_parameter_selection, controller)
+    
+    def show_ocel_preview(self, controller):
+        self.show_frame(create_ocel_preview, controller)
