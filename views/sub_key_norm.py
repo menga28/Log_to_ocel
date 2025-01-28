@@ -78,7 +78,6 @@ def create_sub_key_norm(parent, controller):
         window.tree["columns"] = list(df.columns)
         for col in df.columns:
             window.tree.heading(col, text=col)
-            # window.tree.column(col, width=100)
 
         for index, row in df.iterrows():
             window.tree.insert("", "end", values=list(row))

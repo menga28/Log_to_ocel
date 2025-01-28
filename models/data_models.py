@@ -2,6 +2,7 @@ import pandas as pd
 import json
 import pm4py
 import time
+from collections import Counter
 
 
 class DataModel:
@@ -14,9 +15,52 @@ class DataModel:
         self.start_time = None
         self.end_time = None
         self.ocel = None
+        self.number_of_events = 0
+        self.number_of_objects = 0
+        self.number_of_activities = 0
+        self.object_columns = 0
+        self.unique_object_values = 0
+        self.number_of_object_types = 0
+        self.events_objects_relationships = 0
+        self.activities_occurrences = 0
+
+    def ocel_info_extraction(self):
+        if self.ocel is None:
+            print("Errore: self.ocel non è stato inizializzato correttamente.")
+            return
+
+        # Numero di eventi e oggetti
+        self.number_of_events = len(self.ocel.events)
+        self.number_of_objects = len(self.ocel.objects)
+
+        # Numero di attività uniche
+        self.number_of_activities = self.ocel.events['ocel:activity'].nunique()
+
+        # Colonne degli oggetti e tipi unici
+        self.object_columns = [
+            col for col in self.ocel.events.columns
+            if col.startswith('ocel:type:')
+        ]
+        self.number_of_object_types = self.ocel.objects['ocel:type'].nunique()
+        self.unique_object_values = self.ocel.objects['ocel:type'].unique()
+
+        # Relazioni evento-oggetto
+        self.events_objects_relationships = len(self.ocel.relations)
+
+        # Occorrenze delle attività
+        self.activities_occurrences = Counter(
+            self.ocel.events['ocel:activity'])
+
+        # Stampa i valori per debug
+        print(f"Number of events: {self.number_of_events}")
+        print(f"Number of objects: {self.number_of_objects}")
+        print(f"Number of activities: {self.number_of_activities}")
+        print(f"Number of object types: {self.number_of_object_types}")
+        print(
+            f"Events-objects relationships: {self.events_objects_relationships}")
+        print(f"Activities occurrences: {self.activities_occurrences}")
 
     def set_current_file(self, path):
-
         try:
             self.start_time = time.time()
             with open(path, "r") as file:
@@ -38,7 +82,7 @@ class DataModel:
             'subkeys': f"Sub-keys: {str(self.nested_keys()).strip('[]')}",
             'statistics_df': f"Log length: {len(self.df)}, Memory: {self.get_memory_usage()}, Execution time: {execution_time:.5f} seconds",
             'subkeys_normalization': f"Columns to normalize: {str(self.nested_keys()).strip('[]')}",
-            'statistics_ocel': f"Object-Centric Event Log statistics: Number of events: {1}, number of objects {1}: number of activities: {1}, number of object types: {1}, events-objects relationships: {1}\n                                                             Activities occurrences: {1}",
+            'statistics_ocel': f"Object-Centric Event Log statistics: Number of events: {self.number_of_events}, number of objects {self.number_of_objects}: number of activities: {self.number_of_activities}, number of object types: {self.number_of_object_types}, events-objects relationships: {self.events_objects_relationships}\n                                                             Activities occurrences: {self.activities_occurrences}",
         }
 
     def get_memory_usage(self):
@@ -126,6 +170,8 @@ class DataModel:
         return self.df_normalized
 
     def set_ocel_parameters(self, activity, timestamp, object_types, events_attrs, object_attrs):
+        print("set_ocel_parameter: ", activity, timestamp,
+              object_types, events_attrs, object_attrs)
         self.ocel = pm4py.convert.convert_log_to_ocel(
             log=self.df_normalized,
             activity_column=activity,
@@ -134,4 +180,7 @@ class DataModel:
             additional_event_attributes=events_attrs,
             additional_object_attributes=object_attrs
         )
-        self.ocel.relations["ocel:qualifier"] = ocel_normalized.relations["ocel:type"]
+        self.ocel.relations["ocel:qualifier"] = self.ocel.relations["ocel:type"]
+        print(self.ocel)
+        self.ocel_info_extraction()
+        self.get_stats()

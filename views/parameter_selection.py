@@ -111,12 +111,19 @@ def create_parameter_selection(parent, controller):
         _print_current_state()
 
     def _print_current_state():
-        print("\nCurrent Selections:")
-        print(f"Activity: {controller.activity_selection}")
-        print(f"Timestamp: {controller.timestamp_selection}")
-        print(f"Object Types: {controller.object_types_selection}")
-        print(f"Event Attributes: {controller.events_attrs_selection}")
-        print(f"Object Attributes: {controller.object_attrs_selection}\n")
+        current_state = (
+            f"\nActivity: {controller.activity_selection}\n"
+            f"\nTimestamp: {controller.timestamp_selection}\n"
+            f"\nObject Types: {controller.object_types_selection}\n"
+            f"\nEvent Attributes: {controller.events_attrs_selection}\n"
+            f"\nObject Attributes: {controller.object_attrs_selection}"
+        )
+        # Aggiorna il testo del widget Text
+        current_selection_text.config(state=tk.NORMAL)  # Permetti la modifica
+        current_selection_text.delete("1.0", tk.END)  # Cancella il contenuto precedente
+        current_selection_text.insert(tk.END, f"Current Selection: \n{current_state}")
+        current_selection_text.config(state=tk.DISABLED)  # Rendi il testo non modificabile
+
 
     # Funzioni specifiche per ogni dropdown
     def on_activity_select(event):
@@ -178,21 +185,25 @@ def create_parameter_selection(parent, controller):
         prev_object_attrs = controller.object_attrs_selection.copy()
 
         # Aggiorna tutte le listbox
-        for listbox in [activity_listbox, timestamp_listbox,
-                        object_types_listbox, events_attrs_listbox,
-                        object_type_attrs_listbox]:
-            listbox.delete(0, tk.END)
-            for col in columns:
-                listbox.insert(tk.END, col)
+        listboxes = [
+            activity_listbox, timestamp_listbox, object_types_listbox,
+            events_attrs_listbox, object_type_attrs_listbox
+        ]
+        for listbox in listboxes:
+            if listbox.winfo_exists():  # Controlla che il widget esista
+                listbox.delete(0, tk.END)
+                for col in columns:
+                    listbox.insert(tk.END, col)
 
         # Ripristina selezioni solo se esistono nelle nuove colonne
         def restore_selection(listbox, prev_selection):
-            for item in prev_selection:
-                try:
-                    idx = columns.index(item)
-                    listbox.selection_set(idx)
-                except ValueError:
-                    continue
+            if listbox.winfo_exists():
+                for item in prev_selection:
+                    try:
+                        idx = columns.index(item)
+                        listbox.selection_set(idx)
+                    except ValueError:
+                        continue
 
         restore_selection(activity_listbox, prev_activity)
         restore_selection(timestamp_listbox, prev_timestamp)
@@ -200,11 +211,39 @@ def create_parameter_selection(parent, controller):
         restore_selection(events_attrs_listbox, prev_event_attrs)
 
         # Aggiorna object_attrs_listbox mantenendo le relazioni
-        object_columns_attrs_listbox.delete(0, tk.END)
-        for col in columns:
-            object_columns_attrs_listbox.insert(tk.END, col)
+        if object_columns_attrs_listbox.winfo_exists():  # Controlla che esista
+            object_columns_attrs_listbox.delete(0, tk.END)
+            for col in columns:
+                object_columns_attrs_listbox.insert(tk.END, col)
 
-        controller.update_columns = update_columns
+    controller.update_columns = update_columns
+
+    # Frame per contenere il Text e la scrollbar
+    current_selection_frame = tk.Frame(window, bg="#86b2cc")
+    current_selection_frame.place(x=720, y=338, width=600, height=185)
+
+    # Scrollbar verticale
+    scrollbar = tk.Scrollbar(current_selection_frame)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+    # Text con scrollbar
+    current_selection_text = tk.Text(
+        current_selection_frame,
+        bg="#86b2cc",
+        fg="#000000",
+        font=("Inter", 14 * -1),
+        wrap=tk.NONE,  # Disabilita il wrapping automatico
+        xscrollcommand=scrollbar.set
+    )
+    current_selection_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+    # Collega la scrollbar al Text
+    scrollbar.config(command=current_selection_text.xview)
+
+    # Imposta il testo iniziale
+    current_selection_text.insert(tk.END, "Current Selection: ")
+    # Rendi il testo non modificabile
+    current_selection_text.config(state=tk.DISABLED)
 
     # Pulsanti con immagini originali
     button_5_image = tk.PhotoImage(file=load_asset("frame_4/6.png"))

@@ -2,7 +2,7 @@ from models.data_models import DataModel
 from tkinter import filedialog
 import os
 import pandas as pd
-
+import pm4py
 
 class Controller:
     def __init__(self, view):
@@ -31,11 +31,11 @@ class Controller:
             self.object_types_selection = []
             self.events_attrs_selection = []
             self.object_attrs_selection = {}
-            
+
             self.model.set_current_file(file_path)
             self.view.show_row_info(self)
             self._update_stats()
-            
+
             # Forza l'aggiornamento delle colonne se necessario
             if hasattr(self, 'update_columns'):
                 self.update_columns(self.model.nested_keys())
@@ -46,11 +46,11 @@ class Controller:
         self.object_types_selection = []
         self.events_attrs_selection = []
         self.object_attrs_selection = {}
-        
+
         self.model.set_current_file(self.default_file_path)
         self.view.show_row_info(self)
         self._update_stats()
-        
+
         if hasattr(self, 'update_columns'):
             self.update_columns(self.model.nested_keys())
 
@@ -103,29 +103,14 @@ class Controller:
         self.view.show_ocel_preview(self)
         self._update_stats()
 
-    def handle_ocel_export(self):
-        print("Exporting to OCEL")
-
     def handle_show_ocel_preview(self):
         if not self.activity_selection:
             print("Error: Select an Activity column!")
-            return    
+            return
         if not self.timestamp_selection:
             print("Error: Select a Timestamp column!")
             return
 
-        print("\nFinal selections:")
-        print(f"Activity: {self.activity_selection}")
-        print(f"Timestamp: {self.timestamp_selection}")
-        print(f"Object Types: {self.object_types_selection}")
-        print(f"Event Attributes: {self.events_attrs_selection}")
-        print(f"Object Attributes: {self.object_attrs_selection}")
-
-        self.view.show_ocel_preview(self)
-        self._update_stats()
-
-        print("\nParametri selezionati: ")
-        # Recupera le selezioni dagli dropdown
         activity = self.activity_selection[0] if self.activity_selection else None
         timestamp = self.timestamp_selection[0] if self.timestamp_selection else None
         object_types = self.object_types_selection
@@ -135,3 +120,27 @@ class Controller:
 
         self.model.set_ocel_parameters(
             activity, timestamp, object_types, events_attrs, object_attrs)
+
+        self.view.show_ocel_preview(self)
+        self._update_stats()
+        # Recupera le selezioni dagli dropdown
+
+    def handle_ocel_export(self):
+        json_file_path = filedialog.asksaveasfilename(
+        defaultextension=".json",  # Estensione predefinita
+        filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+        title="Save JSON file"
+        )
+        
+        if json_file_path:
+            # Deriva il percorso per il secondo file con estensione .jsonocel
+            jsonocel_file_path = json_file_path.rstrip(".json")  # Rimuovi l'estensione .json se presente
+            jsonocel_file_path += ".jsonocel"  # Aggiungi l'estensione .jsonocel
+            
+            # Salva il primo file JSON
+            pm4py.write.write_ocel2_json(self.model.ocel, json_file_path)
+            print(f"JSON file saved at: {json_file_path}")
+            
+            # Salva il secondo file JSONOCEL
+            pm4py.write.write_ocel2_json(self.model.ocel, jsonocel_file_path)
+            print(f"JSONOCEL file saved at: {jsonocel_file_path}")
