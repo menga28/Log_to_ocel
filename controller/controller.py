@@ -4,6 +4,7 @@ import os
 import pandas as pd
 import pm4py
 
+
 class Controller:
     def __init__(self, view):
         self.view = view
@@ -25,7 +26,7 @@ class Controller:
             filetypes=[("JSON files", "*.json")]
         )
         if file_path:
-            # Resetta tutte le selezioni prima di caricare il nuovo file
+
             self.activity_selection = []
             self.timestamp_selection = []
             self.object_types_selection = []
@@ -36,7 +37,6 @@ class Controller:
             self.view.show_row_info(self)
             self._update_stats()
 
-            # Forza l'aggiornamento delle colonne se necessario
             if hasattr(self, 'update_columns'):
                 self.update_columns(self.model.nested_keys())
 
@@ -54,7 +54,6 @@ class Controller:
         if hasattr(self, 'update_columns'):
             self.update_columns(self.model.nested_keys())
 
-    # Handlers per Row Info
     def handle_row_button5(self):
         self.view.show_sub_key_norm(self)
         self._update_stats()
@@ -123,24 +122,21 @@ class Controller:
 
         self.view.show_ocel_preview(self)
         self._update_stats()
-        # Recupera le selezioni dagli dropdown
 
     def handle_ocel_export(self):
         json_file_path = filedialog.asksaveasfilename(
-        defaultextension=".json",  # Estensione predefinita
-        filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
-        title="Save JSON file"
+            defaultextension=".json",
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+            title="Save JSON file"
         )
-        
+
         if json_file_path:
-            # Deriva il percorso per il secondo file con estensione .jsonocel
-            jsonocel_file_path = json_file_path.rstrip(".json")  # Rimuovi l'estensione .json se presente
-            jsonocel_file_path += ".jsonocel"  # Aggiungi l'estensione .jsonocel
-            
-            # Salva il primo file JSON
+
+            jsonocel_file_path = json_file_path.rstrip(".json")
+            jsonocel_file_path += ".jsonocel"
+
             pm4py.write.write_ocel2_json(self.model.ocel, json_file_path)
             print(f"JSON file saved at: {json_file_path}")
-            
-            # Salva il secondo file JSONOCEL
+
             pm4py.write.write_ocel2_json(self.model.ocel, jsonocel_file_path)
             print(f"JSONOCEL file saved at: {jsonocel_file_path}")

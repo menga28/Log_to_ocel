@@ -60,7 +60,6 @@ def create_ocel_preview(parent, controller):
         font=("Inter", 24 * -1)
     )
 
-    # ocel export button
     button_1_image = tk.PhotoImage(file=load_asset("frame_5/6.png"))
     button_1 = tk.Button(
         image=button_1_image,

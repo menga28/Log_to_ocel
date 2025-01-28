@@ -29,14 +29,11 @@ class DataModel:
             print("Errore: self.ocel non è stato inizializzato correttamente.")
             return
 
-        # Numero di eventi e oggetti
         self.number_of_events = len(self.ocel.events)
         self.number_of_objects = len(self.ocel.objects)
 
-        # Numero di attività uniche
         self.number_of_activities = self.ocel.events['ocel:activity'].nunique()
 
-        # Colonne degli oggetti e tipi unici
         self.object_columns = [
             col for col in self.ocel.events.columns
             if col.startswith('ocel:type:')
@@ -44,14 +41,11 @@ class DataModel:
         self.number_of_object_types = self.ocel.objects['ocel:type'].nunique()
         self.unique_object_values = self.ocel.objects['ocel:type'].unique()
 
-        # Relazioni evento-oggetto
         self.events_objects_relationships = len(self.ocel.relations)
 
-        # Occorrenze delle attività
         self.activities_occurrences = Counter(
             self.ocel.events['ocel:activity'])
 
-        # Stampa i valori per debug
         print(f"Number of events: {self.number_of_events}")
         print(f"Number of objects: {self.number_of_objects}")
         print(f"Number of activities: {self.number_of_activities}")
@@ -112,12 +106,10 @@ class DataModel:
         self.current_file = filename
 
     def normalize_data(self, indexes_to_normalize: list):
-        # Verifica che il DataFrame non sia vuoto e che ci siano colonne nidificate
         if self.df is None or self.df.empty or not self.nested_columns:
             print("DataFrame non valido o nessuna colonna nidificata disponibile.")
             return None
 
-        # Recupera i nomi delle colonne da normalizzare in base agli indici
         columns_to_normalize = [self.nested_columns[i]
                                 for i in indexes_to_normalize if i < len(self.nested_columns)]
         meta_fields = self.not_nested_columns
@@ -126,21 +118,18 @@ class DataModel:
             print("Nessuna colonna valida trovata per normalizzare.")
             return None
 
-        # Inizializza un DataFrame vuoto per i dati normalizzati
         normalized_dfs = []
 
         for col in columns_to_normalize:
             if col in self.df.columns:
                 try:
-                    # Usa pd.json_normalize per normalizzare i dati
                     normalized_df = pd.json_normalize(
                         self.df.to_dict(orient='records'),
-                        record_path=col,  # Colonna da esplodere
-                        meta=meta_fields,  # Campi meta
+                        record_path=col,
+                        meta=meta_fields,
                         record_prefix=f"{col}_"
                     )
 
-                    # Verifica se esiste almeno un campo meta per generare l'ID univoco
                     if meta_fields:
                         normalized_df[f"{col}__id"] = f"{col}_" + normalized_df[meta_fields[0]].astype(str) + "_" + (
                             normalized_df.groupby(meta_fields[0]).cumcount() + 1).astype(str)
@@ -159,10 +148,8 @@ class DataModel:
             print("Nessun DataFrame normalizzato generato.")
             return None
 
-        # Combina tutti i DataFrame normalizzati in uno unico
         self.df_normalized = pd.concat(normalized_dfs, ignore_index=True)
 
-        # Calcola la dimensione del DataFrame normalizzato
         self.df_size_normalized = self.df_normalized.memory_usage(
             deep=True).sum() / 1024
         print(self.df_normalized.head())

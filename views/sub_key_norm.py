@@ -58,7 +58,6 @@ def create_sub_key_norm(parent, controller):
     h_scrollbar = ttk.Scrollbar(tree_frame, orient="horizontal")
     h_scrollbar.pack(side="bottom", fill="x")
 
-    # Rendi tree un attributo della finestra
     window.tree = ttk.Treeview(
         tree_frame,
         columns=[],
@@ -68,8 +67,6 @@ def create_sub_key_norm(parent, controller):
     window.tree.pack(fill="both", expand=True)
 
     h_scrollbar.config(command=window.tree.xview)
-
-    # Funzione per aggiornare il Treeview con i dati del DataFrame
 
     def update_treeview(df):
         for row in window.tree.get_children():
@@ -85,13 +82,11 @@ def create_sub_key_norm(parent, controller):
         window.tree.update_idletasks()
         h_scrollbar.pack(side="bottom", fill="x")
 
-    # Collega l'aggiornamento del Treeview al controller
     controller.update_treeview = update_treeview
 
     dropdown_frame = tk.Frame(window, bg="#86b2cc", relief="flat", bd=1)
     dropdown_frame.place(x=80, y=370, width=400)
 
-    # Label del dropdown (intestazione cliccabile)
     dropdown_label = tk.Label(
         dropdown_frame,
         text="Select columns to normalize",
@@ -102,12 +97,10 @@ def create_sub_key_norm(parent, controller):
     )
     dropdown_label.pack(fill="x", pady=5, padx=5)
 
-    # Contenitore per la lista (inizialmente nascosto)
     listbox_frame = tk.Frame(dropdown_frame, bg="#ffffff")
     listbox_frame.pack(fill="both", expand=False, padx=10, pady=5)
-    listbox_frame.pack_forget()  # Nasconde il frame inizialmente
+    listbox_frame.pack_forget()
 
-    # Listbox per selezione multipla
     window.listbox = tk.Listbox(
         listbox_frame,
         selectmode=tk.MULTIPLE,
@@ -119,33 +112,25 @@ def create_sub_key_norm(parent, controller):
     )
     window.listbox.pack(fill="both", expand=True)
 
-    # Stato aperto/chiuso
-    is_expanded = [False]  # Usa una lista mutabile per preservare lo stato
+    is_expanded = [False]
 
-    # Funzione per espandere/collassare la tendina
     def toggle_dropdown(event=None):
         if is_expanded[0]:
-            # Collassa la tendina
             listbox_frame.pack_forget()
             is_expanded[0] = False
         else:
-            # Espande la tendina
             listbox_frame.pack(fill="both", expand=True)
             is_expanded[0] = True
 
-    # Associa il clic sull'etichetta al toggle
     dropdown_label.bind("<Button-1>", toggle_dropdown)
 
-    # Funzione per aggiornare le colonne nella Listbox
     def update_columns(columns):
-        window.listbox.delete(0, tk.END)  # Cancella tutte le voci esistenti
+        window.listbox.delete(0, tk.END)
         for col in columns:
-            window.listbox.insert(tk.END, col)  # Aggiungi ogni colonna alla Listbox
-        # Collassa di default
+            window.listbox.insert(tk.END, col)
         if is_expanded[0]:
             toggle_dropdown()
 
-    # Collega l'aggiornamento delle colonne al controller
     controller.update_columns = update_columns
 
     window.canvas.create_text(
