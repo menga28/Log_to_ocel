@@ -49,7 +49,3 @@ To set up the project, follow these steps:
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-Feel free to replace the GitHub repository link with your actual repository.
