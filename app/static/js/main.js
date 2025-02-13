@@ -28,6 +28,126 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
+  function setupMappingPage(data) {
+    // Popola il selettore delle colonne annidate
+    const columnsToNormalize = document.getElementById("columnsToNormalize");
+    columnsToNormalize.innerHTML = "";
+    data.nested_columns.forEach((col, index) => {
+      const option = document.createElement("option");
+      option.value = index;
+      option.textContent = col;
+      columnsToNormalize.appendChild(option);
+    });
+
+    $('#columnsToNormalize').select2({
+      placeholder: "Seleziona colonne da normalizzare",
+      allowClear: true,
+      width: '100%',
+      selectionCssClass: 'border-gray-300',
+      dropdownCssClass: 'border-gray-300',
+      closeOnSelect: false // Permette selezione multipla senza chiudere il dropdown
+    });
+
+    // Popola la tabella di anteprima
+    const table = document.querySelector("#mappingPage table");
+    const thead = table.querySelector("thead tr");
+    const tbody = table.querySelector("tbody");
+
+    // Pulisci contenuto esistente
+    thead.innerHTML = "";
+    tbody.innerHTML = "";
+
+    // Intestazioni colonne
+    data.preview_columns.forEach(col => {
+      const th = document.createElement("th");
+      th.textContent = col;
+      th.className = "px-4 py-2 bg-gray-100 sticky top-0";
+      thead.appendChild(th);
+    });
+
+    // Righe dati (prime 10)
+    data.sample_data.slice(0, 10).forEach(row => {
+      const tr = document.createElement("tr");
+      data.preview_columns.forEach(col => {
+        const td = document.createElement("td");
+        let content = row[col];
+        if (typeof content === "object") {
+          content = JSON.stringify(content, null, 2);
+        }
+        td.textContent = content;
+        td.className = "px-4 py-2 border whitespace-nowrap";
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+
+    // Gestione pulsanti
+    document.getElementById("backBtn").addEventListener("click", () => {
+      mappingPage.classList.add("hidden");
+      document.getElementById("results").classList.remove("hidden");
+    });
+
+    // Modifica l'handler del pulsante Continue
+    document.getElementById("continueBtn").addEventListener("click", async () => {
+      const selectedOptions = Array.from(columnsToNormalize.selectedOptions);
+      const indexes = selectedOptions.map(opt => parseInt(opt.value));
+
+      try {
+        const response = await fetch("/normalize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ indexes })
+        });
+
+        if (!response.ok) throw new Error("Normalizzazione fallita");
+
+        const normalizedData = await response.json();
+
+        // Aggiorna l'anteprima con i dati normalizzati
+        updateNormalizedPreview(normalizedData);
+
+      } catch (error) {
+        console.error("Errore:", error);
+        alert(error.message);
+      }
+    });
+
+    // Aggiungi questa funzione
+    function updateNormalizedPreview(data) {
+      const table = document.querySelector("#mappingPage table");
+      const thead = table.querySelector("thead tr");
+      const tbody = table.querySelector("tbody");
+
+      // Pulisci e aggiorna la tabella
+      thead.innerHTML = "";
+      tbody.innerHTML = "";
+
+      // Intestazioni
+      data.columns.forEach(col => {
+        const th = document.createElement("th");
+        th.textContent = col;
+        th.className = "px-4 py-2 bg-gray-100 sticky top-0";
+        thead.appendChild(th);
+      });
+
+      // Righe dati
+      data.sample_data.forEach(row => {
+        const tr = document.createElement("tr");
+        data.columns.forEach(col => {
+          const td = document.createElement("td");
+          let content = row[col] || "";
+          if (typeof content === "object") {
+            content = JSON.stringify(content, null, 2);
+          }
+          td.textContent = content;
+          td.className = "px-4 py-2 border whitespace-nowrap";
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+    }
+  }
+
   function displayResults(data) {
     console.log("Displaying results:", data);
     const resultsDiv = document.createElement("div");
@@ -63,10 +183,19 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelector(".max-w-6xl").appendChild(resultsDiv);
   }
 
-  startMappingBtn.addEventListener("click", function () {
-    const resultsDiv = document.getElementById("results");
-    if (resultsDiv) resultsDiv.classList.add("hidden");
-    mappingPage.classList.remove("hidden");
+  startMappingBtn.addEventListener("click", async function () {
+    try {
+      const response = await fetch("/preview");
+      if (!response.ok) throw new Error("Preview failed");
+
+      const previewData = await response.json();
+      setupMappingPage(previewData); // Chiamata alla nuova funzione
+      mappingPage.classList.remove("hidden");
+
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Failed to load preview data");
+    }
   });
 
   sampleBtn.addEventListener("click", async function () {

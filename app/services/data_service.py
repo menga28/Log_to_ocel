@@ -11,6 +11,7 @@ class DataService:
         self.start_time = None
         self.end_time = None
         self.error = None
+        self.current_file = None
         self.df_size_normalized = 0
 
     def contains_nested_data(self, column):
@@ -34,6 +35,7 @@ class DataService:
                 self.df = pd.DataFrame(data)
             self.nested_keys()
             self.end_time = time.time()
+            self.current_file = filepath 
             return self.df
         except Exception as e:
             self.error = str(e)
