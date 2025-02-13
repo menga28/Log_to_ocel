@@ -1,3 +1,5 @@
+flask
+flet
 pandas
 pm4py
-tkinter
+python-dotenv
