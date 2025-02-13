@@ -2,3 +2,50 @@
     border-color: #4F46E5 !important;
     background-color: #EEF2FF !important;
 }
+
+/* Pulsanti toggle più visibili */
+.json-formatter-toggler-link {
+    color: #3b82f6 !important;
+    /* Blu Tailwind */
+    margin-right: 8px !important;
+}
+
+/* Icone più grandi */
+.json-formatter-toggler::after {
+    font-size: 14px !important;
+    width: 15px !important;
+}
+
+/* Hover stato */
+.json-formatter-row:hover {
+    background-color: #f8fafc !important;
+}
+
+/* Abilita le frecce collassabili */
+.json-formatter-row .json-formatter-toggler {
+    cursor: pointer !important;
+    position: relative !important;
+    opacity: 1 !important;
+    margin-right: 5px !important;
+}
+
+.json-formatter-row .json-formatter-toggler::after {
+    content: '▶';
+    display: inline-block !important;
+    font-size: 0.8em !important;
+    transition: transform 0.2s ease;
+}
+
+.json-formatter-row.json-formatter-open .json-formatter-toggler::after {
+    transform: rotate(90deg);
+}
+
+/* Migliora la visibilità dello stato hover */
+.json-formatter-row:hover {
+    background-color: #f3f4f6 !important;
+}
+
+/* Aggiunge margine agli oggetti annidati */
+.json-formatter-children {
+    margin-left: 1.5em !important;
+}
