@@ -87,30 +87,68 @@ document.addEventListener("DOMContentLoaded", function () {
       document.getElementById("results").classList.remove("hidden");
     });
 
-    // Modifica l'handler del pulsante Continue
     document.getElementById("continueBtn").addEventListener("click", async () => {
       const selectedOptions = Array.from(columnsToNormalize.selectedOptions);
       const indexes = selectedOptions.map(opt => parseInt(opt.value));
-
+  
       try {
-        const response = await fetch("/normalize", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ indexes })
-        });
-
-        if (!response.ok) throw new Error("Normalizzazione fallita");
-
-        const normalizedData = await response.json();
-
-        // Aggiorna l'anteprima con i dati normalizzati
-        updateNormalizedPreview(normalizedData);
-
+          const response = await fetch("/normalize", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ indexes })
+          });
+  
+          if (!response.ok) throw new Error("Normalizzazione fallita");
+  
+          const result = await response.json();
+          console.log(result.message);
+  
+          // Nasconde la schermata corrente
+          document.getElementById("mappingPage").classList.add("hidden");
+  
+          // Mostra la nuova schermata di selezione
+          setupSelectionPage(result.columns); 
+  
       } catch (error) {
-        console.error("Errore:", error);
-        alert(error.message);
+          console.error("Errore:", error);
+          alert(error.message);
       }
-    });
+  });
+  
+  function setupSelectionPage(columns) {
+      const selectionPage = document.getElementById("selectionPage");
+      selectionPage.classList.remove("hidden");
+      
+      const activitySelect = document.getElementById("activitySelect");
+      const timestampSelect = document.getElementById("timestampSelect");
+      const objectTypesSelect = document.getElementById("objectTypesSelect");
+      const additionalEventAttributesSelect = document.getElementById("additionalEventAttributesSelect");
+      const additionalObjectAttributesSelect = document.getElementById("additionalObjectAttributesSelect");
+      const mainObjectColumnSelect = document.getElementById("mainObjectColumnSelect");
+  
+      // Svuota gli elementi esistenti
+      [activitySelect, timestampSelect, objectTypesSelect, additionalEventAttributesSelect, additionalObjectAttributesSelect, mainObjectColumnSelect].forEach(select => {
+          select.innerHTML = "";
+      });
+  
+      // Popola i selettori
+      columns.forEach(col => {
+          const option = document.createElement("option");
+          option.value = col;
+          option.textContent = col;
+  
+          activitySelect.appendChild(option.cloneNode(true));
+          timestampSelect.appendChild(option.cloneNode(true));
+          objectTypesSelect.appendChild(option.cloneNode(true));
+          additionalEventAttributesSelect.appendChild(option.cloneNode(true));
+          additionalObjectAttributesSelect.appendChild(option.cloneNode(true));
+          mainObjectColumnSelect.appendChild(option.cloneNode(true));
+      });
+  
+      $('#objectTypesSelect').select2({ placeholder: "Seleziona oggetti", allowClear: true, width: '100%', closeOnSelect: false });
+      $('#additionalEventAttributesSelect').select2({ placeholder: "Seleziona attributi evento", allowClear: true, width: '100%', closeOnSelect: false });
+      $('#additionalObjectAttributesSelect').select2({ placeholder: "Seleziona attributi oggetto", allowClear: true, width: '100%', closeOnSelect: false });
+  }
 
     // Aggiungi questa funzione
     function updateNormalizedPreview(data) {

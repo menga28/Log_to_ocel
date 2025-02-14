@@ -1,6 +1,14 @@
 import pandas as pd
 import json
 import time
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(filename)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
+
 
 class DataService:
     def __init__(self):
@@ -20,8 +28,10 @@ class DataService:
     def nested_keys(self):
         if self.df is None:
             return None
-        self.nested_columns = [col for col in self.df.columns if self.contains_nested_data(self.df[col])]
-        self.not_nested_columns = [col for col in self.df.columns if not self.contains_nested_data(self.df[col])]
+        self.nested_columns = [
+            col for col in self.df.columns if self.contains_nested_data(self.df[col])]
+        self.not_nested_columns = [
+            col for col in self.df.columns if not self.contains_nested_data(self.df[col])]
         return self.nested_columns
 
     def load_dataframe(self, filepath):
@@ -35,7 +45,7 @@ class DataService:
                 self.df = pd.DataFrame(data)
             self.nested_keys()
             self.end_time = time.time()
-            self.current_file = filepath 
+            self.current_file = filepath
             return self.df
         except Exception as e:
             self.error = str(e)
@@ -55,8 +65,8 @@ class DataService:
         if self.df is None or self.df.empty or not self.nested_columns:
             return None
 
-        columns_to_normalize = [self.nested_columns[i] 
-                              for i in indexes_to_normalize if i < len(self.nested_columns)]
+        columns_to_normalize = [self.nested_columns[i]
+                                for i in indexes_to_normalize if i < len(self.nested_columns)]
         meta_fields = self.not_nested_columns
 
         if not columns_to_normalize:
@@ -78,11 +88,13 @@ class DataService:
                         normalized_df[f"{col}__id"] = f"{col}_" + normalized_df[meta_fields[0]].astype(str) + "_" + (
                             normalized_df.groupby(meta_fields[0]).cumcount() + 1).astype(str)
                     else:
-                        normalized_df[f"{col}__id"] = f"{col}_" + normalized_df.index.astype(str)
+                        normalized_df[f"{col}__id"] = f"{col}_" + \
+                            normalized_df.index.astype(str)
 
                     normalized_dfs.append(normalized_df)
                 except Exception as e:
-                    print(f"Errore durante la normalizzazione della colonna {col}: {str(e)}")
+                    print(
+                        f"Errore durante la normalizzazione della colonna {col}: {str(e)}")
             else:
                 print(f"Colonna {col} non trovata nel DataFrame.")
 
@@ -90,5 +102,7 @@ class DataService:
             return None
 
         self.df_normalized = pd.concat(normalized_dfs, ignore_index=True)
-        self.df_size_normalized = self.df_normalized.memory_usage(deep=True).sum() / 1024
-        return self.df_normalized
+        self.df_sie_normalized = self.df_normalized.memory_usage(
+            deep=True).sum() / 1024
+        logger.info(f"Head of normalized DataFrame:\n{self.df_normalized.columns.to_list}")
+

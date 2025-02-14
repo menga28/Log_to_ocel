@@ -50,7 +50,7 @@
 <div id="mappingPage" class="hidden fixed inset-0 bg-white z-50 p-8">
     <div class="max-w-6xl mx-auto">
         <div class="flex justify-between mb-4">
-            <h2 class="text-2xl font-bold">OCEL Mapping</h2>
+            <h2 class="text-2xl font-bold">Columns to normalize</h2>
             <div class="space-x-4">
                 <button id="backBtn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
                     Back
@@ -87,4 +87,54 @@
         </div>
     </div>
 </div>
+
+<!-- Selection Page -->
+<div id="selectionPage" class="hidden fixed inset-0 bg-white z-50 p-8">
+    <div class="max-w-6xl mx-auto">
+        <div class="flex justify-between mb-4">
+            <h2 class="text-2xl font-bold">Select Attributes</h2>
+            <div class="space-x-4">
+                <button id="backToMappingBtn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                    Back
+                </button>
+                <button id="finalizeBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    Finalize
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Activity Column:</label>
+                <select id="activitySelect" class="w-full p-2 border rounded"></select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Timestamp Column:</label>
+                <select id="timestampSelect" class="w-full p-2 border rounded"></select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Object Types:</label>
+                <select id="objectTypesSelect" class="w-full p-2 border rounded" multiple></select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Additional Event Attributes:</label>
+                <select id="additionalEventAttributesSelect" class="w-full p-2 border rounded" multiple></select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Main Object Column:</label>
+                <select id="mainObjectColumnSelect" class="w-full p-2 border rounded"></select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Additional Object Attributes:</label>
+                <select id="additionalObjectAttributesSelect" class="w-full p-2 border rounded" multiple></select>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}

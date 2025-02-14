@@ -2,6 +2,13 @@ from flask import Blueprint, render_template, request, jsonify
 from app.services.file_service import FileService
 from app.services.data_service import DataService
 import os
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(filename)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 main_bp = Blueprint('main', __name__)
 file_service = FileService()
@@ -54,14 +61,14 @@ def get_preview():
 def handle_normalization():
     try:
         indexes = request.json.get('indexes', [])
-        normalized_df = data_service.normalize_data(indexes)
+        data_service.normalize_data(indexes)
 
-        if normalized_df is not None:
-            return jsonify({
-                "columns": list(normalized_df.columns),
-                "sample_data": normalized_df.head(20).to_dict('records')
-            })
+        if data_service.df_normalized is not None:
+            normalized_columns = data_service.df_normalized.columns.tolist()
+            logging.info("Normalization completed successfully")
+            return jsonify({"message": "Normalization successful", "columns": normalized_columns}), 200
         return jsonify({"error": "Normalization failed"}), 400
 
     except Exception as e:
+        logger.error(f"Error during normalization: {e}")
         return jsonify({"error": str(e)}), 500
