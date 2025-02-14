@@ -15,7 +15,6 @@ document.addEventListener("DOMContentLoaded", function () {
           method: "POST",
           body: formData,
         });
-
         if (!response.ok) throw new Error("Upload failed");
 
         const data = await response.json();
@@ -29,7 +28,6 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   function setupMappingPage(data) {
-    // Popola il selettore delle colonne annidate
     const columnsToNormalize = document.getElementById("columnsToNormalize");
     columnsToNormalize.innerHTML = "";
     data.nested_columns.forEach((col, index) => {
@@ -39,36 +37,31 @@ document.addEventListener("DOMContentLoaded", function () {
       columnsToNormalize.appendChild(option);
     });
 
-    $('#columnsToNormalize').select2({
-      placeholder: "Seleziona colonne da normalizzare",
+    $("#columnsToNormalize").select2({
+      placeholder: "Select columns to normalize",
       allowClear: true,
-      width: '100%',
-      selectionCssClass: 'border-gray-300',
-      dropdownCssClass: 'border-gray-300',
-      closeOnSelect: false // Permette selezione multipla senza chiudere il dropdown
+      width: "100%",
+      selectionCssClass: "border-gray-300",
+      dropdownCssClass: "border-gray-300",
+      closeOnSelect: false,
     });
 
-    // Popola la tabella di anteprima
     const table = document.querySelector("#mappingPage table");
     const thead = table.querySelector("thead tr");
     const tbody = table.querySelector("tbody");
-
-    // Pulisci contenuto esistente
     thead.innerHTML = "";
     tbody.innerHTML = "";
 
-    // Intestazioni colonne
-    data.preview_columns.forEach(col => {
+    data.preview_columns.forEach((col) => {
       const th = document.createElement("th");
       th.textContent = col;
       th.className = "px-4 py-2 bg-gray-100 sticky top-0";
       thead.appendChild(th);
     });
 
-    // Righe dati (prime 10)
-    data.sample_data.slice(0, 10).forEach(row => {
+    data.sample_data.slice(0, 10).forEach((row) => {
       const tr = document.createElement("tr");
-      data.preview_columns.forEach(col => {
+      data.preview_columns.forEach((col) => {
         const td = document.createElement("td");
         let content = row[col];
         if (typeof content === "object") {
@@ -81,7 +74,6 @@ document.addEventListener("DOMContentLoaded", function () {
       tbody.appendChild(tr);
     });
 
-    // Gestione pulsanti
     document.getElementById("backBtn").addEventListener("click", () => {
       mappingPage.classList.add("hidden");
       document.getElementById("results").classList.remove("hidden");
@@ -89,89 +81,76 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.getElementById("continueBtn").addEventListener("click", async () => {
       const selectedOptions = Array.from(columnsToNormalize.selectedOptions);
-      const indexes = selectedOptions.map(opt => parseInt(opt.value));
-  
+      const indexes = selectedOptions.map((opt) => parseInt(opt.value));
+
       try {
-          const response = await fetch("/normalize", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ indexes })
-          });
-  
-          if (!response.ok) throw new Error("Normalizzazione fallita");
-  
-          const result = await response.json();
-          console.log(result.message);
-  
-          // Nasconde la schermata corrente
-          document.getElementById("mappingPage").classList.add("hidden");
-  
-          // Mostra la nuova schermata di selezione
-          setupSelectionPage(result.columns); 
-  
+        const response = await fetch("/normalize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ indexes }),
+        });
+        if (!response.ok) throw new Error("Normalization failed");
+
+        const result = await response.json();
+        console.log(result.message);
+        document.getElementById("mappingPage").classList.add("hidden");
+        setupSelectionPage(result.columns);
       } catch (error) {
-          console.error("Errore:", error);
-          alert(error.message);
+        console.error("Error:", error);
+        alert(error.message);
       }
-  });
-  
-  function setupSelectionPage(columns) {
+    });
+
+    function setupSelectionPage(columns) {
       const selectionPage = document.getElementById("selectionPage");
       selectionPage.classList.remove("hidden");
-      
+
       const activitySelect = document.getElementById("activitySelect");
       const timestampSelect = document.getElementById("timestampSelect");
       const objectTypesSelect = document.getElementById("objectTypesSelect");
       const additionalEventAttributesSelect = document.getElementById("additionalEventAttributesSelect");
       const additionalObjectAttributesSelect = document.getElementById("additionalObjectAttributesSelect");
       const mainObjectColumnSelect = document.getElementById("mainObjectColumnSelect");
-  
-      // Svuota gli elementi esistenti
-      [activitySelect, timestampSelect, objectTypesSelect, additionalEventAttributesSelect, additionalObjectAttributesSelect, mainObjectColumnSelect].forEach(select => {
-          select.innerHTML = "";
-      });
-  
-      // Popola i selettori
-      columns.forEach(col => {
-          const option = document.createElement("option");
-          option.value = col;
-          option.textContent = col;
-  
-          activitySelect.appendChild(option.cloneNode(true));
-          timestampSelect.appendChild(option.cloneNode(true));
-          objectTypesSelect.appendChild(option.cloneNode(true));
-          additionalEventAttributesSelect.appendChild(option.cloneNode(true));
-          additionalObjectAttributesSelect.appendChild(option.cloneNode(true));
-          mainObjectColumnSelect.appendChild(option.cloneNode(true));
-      });
-  
-      $('#objectTypesSelect').select2({ placeholder: "Seleziona oggetti", allowClear: true, width: '100%', closeOnSelect: false });
-      $('#additionalEventAttributesSelect').select2({ placeholder: "Seleziona attributi evento", allowClear: true, width: '100%', closeOnSelect: false });
-      $('#additionalObjectAttributesSelect').select2({ placeholder: "Seleziona attributi oggetto", allowClear: true, width: '100%', closeOnSelect: false });
-  }
 
-    // Aggiungi questa funzione
+      [activitySelect, timestampSelect, objectTypesSelect, additionalEventAttributesSelect, additionalObjectAttributesSelect, mainObjectColumnSelect].forEach((select) => {
+        select.innerHTML = "";
+      });
+
+      columns.forEach((col) => {
+        const option = document.createElement("option");
+        option.value = col;
+        option.textContent = col;
+
+        activitySelect.appendChild(option.cloneNode(true));
+        timestampSelect.appendChild(option.cloneNode(true));
+        objectTypesSelect.appendChild(option.cloneNode(true));
+        additionalEventAttributesSelect.appendChild(option.cloneNode(true));
+        additionalObjectAttributesSelect.appendChild(option.cloneNode(true));
+        mainObjectColumnSelect.appendChild(option.cloneNode(true));
+      });
+
+      $("#objectTypesSelect").select2({ placeholder: "Select objects", allowClear: true, width: "100%", closeOnSelect: false });
+      $("#additionalEventAttributesSelect").select2({ placeholder: "Select event attributes", allowClear: true, width: "100%", closeOnSelect: false });
+      $("#additionalObjectAttributesSelect").select2({ placeholder: "Select object attributes", allowClear: true, width: "100%", closeOnSelect: false });
+    }
+
     function updateNormalizedPreview(data) {
       const table = document.querySelector("#mappingPage table");
       const thead = table.querySelector("thead tr");
       const tbody = table.querySelector("tbody");
-
-      // Pulisci e aggiorna la tabella
       thead.innerHTML = "";
       tbody.innerHTML = "";
 
-      // Intestazioni
-      data.columns.forEach(col => {
+      data.columns.forEach((col) => {
         const th = document.createElement("th");
         th.textContent = col;
         th.className = "px-4 py-2 bg-gray-100 sticky top-0";
         thead.appendChild(th);
       });
 
-      // Righe dati
-      data.sample_data.forEach(row => {
+      data.sample_data.forEach((row) => {
         const tr = document.createElement("tr");
-        data.columns.forEach(col => {
+        data.columns.forEach((col) => {
           const td = document.createElement("td");
           let content = row[col] || "";
           if (typeof content === "object") {
@@ -198,26 +177,23 @@ document.addEventListener("DOMContentLoaded", function () {
       hoverPreviewEnabled: true,
       animateOpen: true,
       animateClose: true,
-      open: 1 // Livello di espansione iniziale
+      open: 1,
     });
 
-    // Costruisci la struttura correttamente
     const heading = document.createElement("h2");
     heading.className = "text-2xl font-semibold mb-4";
     heading.textContent = "Analysis Results";
 
     const container = document.createElement("div");
     container.className = "bg-gray-50 p-4 rounded overflow-x-auto";
-    container.appendChild(formatter.render()); // Importante: appendChild diretto
+    container.appendChild(formatter.render());
 
     resultsDiv.appendChild(heading);
     resultsDiv.appendChild(container);
 
-    // Rimuovi risultati esistenti
     const existingResults = document.getElementById("results");
     if (existingResults) existingResults.remove();
 
-    // Aggiungi al DOM
     document.querySelector(".max-w-6xl").appendChild(resultsDiv);
   }
 
@@ -227,9 +203,8 @@ document.addEventListener("DOMContentLoaded", function () {
       if (!response.ok) throw new Error("Preview failed");
 
       const previewData = await response.json();
-      setupMappingPage(previewData); // Chiamata alla nuova funzione
+      setupMappingPage(previewData);
       mappingPage.classList.remove("hidden");
-
     } catch (error) {
       console.error("Error:", error);
       alert("Failed to load preview data");
@@ -254,12 +229,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const previewTable = preview.querySelector("table");
     const thead = previewTable.querySelector("thead tr");
     const tbody = previewTable.querySelector("tbody");
-
-    // Clear existing content
     thead.innerHTML = "";
     tbody.innerHTML = "";
 
-    // Add headers
     data.columns.forEach((column) => {
       const th = document.createElement("th");
       th.textContent = column;
@@ -267,7 +239,6 @@ document.addEventListener("DOMContentLoaded", function () {
       thead.appendChild(th);
     });
 
-    // Add data rows
     data.sample_data.forEach((row) => {
       const tr = document.createElement("tr");
       data.columns.forEach((column) => {
@@ -283,7 +254,7 @@ document.addEventListener("DOMContentLoaded", function () {
       tbody.appendChild(tr);
     });
 
-    // Update normalize columns select
+    const columnsToNormalize = document.getElementById("columnsToNormalize");
     columnsToNormalize.innerHTML = "";
     data.nested_columns.forEach((column, index) => {
       const option = document.createElement("option");
@@ -302,11 +273,14 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   document.getElementById("continueBtn").addEventListener("click", function () {
-    // Logica per il prossimo step
-    console.log("Selected columns:", Array.from(columnsToNormalize.selectedOptions).map(opt => opt.textContent));
+    console.log(
+      "Selected columns:",
+      Array.from(document.getElementById("columnsToNormalize").selectedOptions).map(
+        (opt) => opt.textContent
+      )
+    );
   });
 
-  // Drag and drop functionality
   const dropZone = document.querySelector("label");
 
   ["dragenter", "dragover"].forEach((eventName) => {
@@ -332,7 +306,6 @@ document.addEventListener("DOMContentLoaded", function () {
   function handleDrop(e) {
     const dt = e.dataTransfer;
     const files = dt.files;
-
     fileInput.files = files;
     fileInput.dispatchEvent(new Event("change"));
   }
