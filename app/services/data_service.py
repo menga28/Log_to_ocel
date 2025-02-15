@@ -95,10 +95,10 @@ class DataService:
 
                     normalized_dfs.append(normalized_df)
                 except Exception as e:
-                    print(
+                    logging.error(
                         f"Errore durante la normalizzazione della colonna {col}: {str(e)}")
             else:
-                print(f"Colonna {col} non trovata nel DataFrame.")
+                logging.info(f"Colonna {col} non trovata nel DataFrame.")
 
         if not normalized_dfs:
             return None
@@ -132,18 +132,22 @@ class DataService:
         logger.info("OCEL created: %s", self.ocel)
         self.ocel_info_extraction()
         self.get_stats()
+        self.save_file("ocel_created")
 
     def set_relationship_qualifiers(self, qualifier_map):
-        # qualifier_map is expected to be a dictionary mapping "ocel:type|ocel:activity" to a qualifier string.
+        converted_map = {}
+        for key, value in qualifier_map.items():
+            # Split the key by '|' and convert to a tuple.
+            converted_key = tuple(key.split("|"))
+            converted_map[converted_key] = value
+        logger.info("OCEL created: %s", self.ocel)
+        logger.info("Qualifier map: %s", converted_map)
         try:
-            combination = self.ocel.relations[[
-                'ocel:type', 'ocel:activity', 'ocel:qualifier']].drop_duplicates()
-            for index, row in combination.iterrows():
-                key = f"{row['ocel:type']}|{row['ocel:activity']}"
-                new_qualifier = qualifier_map.get(key, row['ocel:qualifier'])
-                self.ocel.relations.loc[index,
-                                        'ocel:qualifier'] = new_qualifier
+            self.ocel.relations['ocel:qualifier'] = self.ocel.relations.apply(
+                lambda row: converted_map.get((row['ocel:type'], row['ocel:activity']), row['ocel:qualifier']), axis=1
+            )
             logger.info("Updated relationship qualifiers.")
+            self.save_file("ocel_e2o_qualifiers")
         except Exception as e:
             logger.error("Error setting relationship qualifiers: %s", str(e))
             raise e
@@ -155,3 +159,6 @@ class DataService:
     # TODO
     def get_stats(self):
         pass
+    
+    def save_file(self, file_name: str):
+        pm4py.write.write_ocel2_json(self.ocel, file_name + ".jsonocel")
