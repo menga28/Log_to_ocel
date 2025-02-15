@@ -1,9 +1,8 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // Global arrays for qualifier selects (update with your actual available values)
-  const availableTypes = ["txHash", "inputs_inputName", "sender", "contractAddress", "gasUsed", "activity"];
-  const availableActivities = ["approve", "sendFrom", "transfer"];
+  // Declare as "let" so we can update them dynamically after OCEL creation.
+  let availableTypes = ["txHash", "inputs_inputName", "sender", "contractAddress", "gasUsed", "activity"];
+  let availableActivities = ["approve", "sendFrom", "transfer"];
 
-  // Main elements
   const fileInput = document.getElementById("fileInput");
   const startMappingBtn = document.getElementById("startMappingBtn");
   const sampleBtn = document.getElementById("sampleBtn");
@@ -21,7 +20,6 @@ document.addEventListener("DOMContentLoaded", function () {
           body: formData,
         });
         if (!uploadResponse.ok) throw new Error("Upload failed");
-        // After upload, fetch preview data
         const previewResponse = await fetch("/preview");
         if (!previewResponse.ok) throw new Error("Preview failed");
         const previewData = await previewResponse.json();
@@ -63,7 +61,7 @@ document.addEventListener("DOMContentLoaded", function () {
     return schema;
   }
 
-  // Display preview data on the home screen as a JSON skeleton.
+  // Display preview data on the home screen.
   function displayData(data) {
     let columns, sampleData, nestedColumns;
     if (data.preview_columns && data.sample_data) {
@@ -87,7 +85,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const pre = document.createElement("pre");
     pre.textContent = JSON.stringify(schema, null, 2);
     preview.appendChild(pre);
-    // Update "Columns to Normalize" select
+    // Update "Columns to Normalize" select.
     const columnsToNormalize = document.getElementById("columnsToNormalize");
     columnsToNormalize.innerHTML = "";
     nestedColumns.forEach((column, index) => {
@@ -146,7 +144,7 @@ document.addEventListener("DOMContentLoaded", function () {
       mappingPage.classList.add("hidden");
       document.getElementById("results").classList.remove("hidden");
     });
-    // --- /normalize call ---
+    // /normalize call: Send selected nested columns indexes.
     document.getElementById("continueBtn").addEventListener("click", async () => {
       const selectedOptions = Array.from(columnsToNormalize.selectedOptions);
       const indexes = selectedOptions.map(opt => parseInt(opt.value));
@@ -212,13 +210,12 @@ document.addEventListener("DOMContentLoaded", function () {
       $(objectTypesSelect).on("change", function () {
         updateObjectTypeAttributesContainer(columns);
       });
-      // Add a "Finalize" button handler in the selection page that calls /set_ocel_parameters.
+      // Finalize button in the Select Attributes page calls /set_ocel_parameters.
       document.getElementById("finalizeBtn").addEventListener("click", async function () {
         const activity = activitySelect.value;
         const timestamp = timestampSelect.value;
         const object_types = Array.from(objectTypesSelect.selectedOptions).map(opt => opt.value);
         const events_attrs = Array.from(additionalEventAttributesSelect.selectedOptions).map(opt => opt.value);
-        // Build object_attrs from dynamic container (if any)
         const container = document.getElementById("objectTypeAttributesContainer");
         let object_attrs = {};
         Array.from(container.children).forEach(child => {
@@ -242,7 +239,9 @@ document.addEventListener("DOMContentLoaded", function () {
           if (!response.ok) throw new Error("Setting OCEL parameters failed");
           const result = await response.json();
           console.log(result.message);
-          // After OCEL is created, move to Relationship Qualifier page.
+          // Update dynamic qualifier values with the ones received from backend.
+          availableTypes = result.available_types;
+          availableActivities = result.available_activities;
           document.getElementById("selectionPage").classList.add("hidden");
           document.getElementById("qualifierPage").classList.remove("hidden");
           initializeQualifierRows();
@@ -330,7 +329,6 @@ document.addEventListener("DOMContentLoaded", function () {
     rowDiv.appendChild(activitySelect);
     rowDiv.appendChild(qualifierInput);
     container.appendChild(rowDiv);
-    // When the last row has a non-empty qualifier, add a new row.
     rowDiv.addEventListener("change", function () {
       const rows = container.getElementsByClassName("qualifier-row");
       if (rows[rows.length - 1] === rowDiv && qualifierInput.value.trim() !== "") {
@@ -362,7 +360,6 @@ document.addEventListener("DOMContentLoaded", function () {
       if (!response.ok) throw new Error("Setting relationship qualifiers failed");
       const result = await response.json();
       console.log(result.message);
-      // Optionally update UI on success.
     } catch (error) {
       console.error("Error:", error);
       alert(error.message);
@@ -375,7 +372,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("selectionPage").classList.remove("hidden");
   });
 
-  // "Start OCEL Mapping" button on home screen shows the mapping page.
+  // "Start OCEL Mapping" button on the home screen.
   startMappingBtn.addEventListener("click", async function () {
     try {
       const response = await fetch("/preview");

@@ -86,7 +86,13 @@ def set_ocel_parameters():
                     activity, timestamp, object_types, events_attrs, object_attrs)
         data_service.set_ocel_parameters(
             activity, timestamp, object_types, events_attrs, object_attrs)
-        return jsonify({"message": "OCEL parameters set and OCEL created successfully"}), 200
+        available_types = data_service.ocel.relations["ocel:type"].unique(
+        ).tolist()
+        available_activities = data_service.ocel.relations["ocel:activity"].unique(
+        ).tolist()
+        return jsonify({"message": "OCEL parameters set and OCEL created successfully",
+                        "available_types": available_types,
+                        "available_activities": available_activities}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
