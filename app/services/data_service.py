@@ -137,7 +137,6 @@ class DataService:
     def set_relationship_qualifiers(self, qualifier_map):
         converted_map = {}
         for key, value in qualifier_map.items():
-            # Split the key by '|' and convert to a tuple.
             converted_key = tuple(key.split("|"))
             converted_map[converted_key] = value
         logger.info("OCEL created: %s", self.ocel)
@@ -146,6 +145,8 @@ class DataService:
             self.ocel.relations['ocel:qualifier'] = self.ocel.relations.apply(
                 lambda row: converted_map.get((row['ocel:type'], row['ocel:activity']), row['ocel:qualifier']), axis=1
             )
+            self.ocel.relations = self.ocel.relations[self.ocel.relations['ocel:qualifier'].notnull(
+            )]
             logger.info("Updated relationship qualifiers.")
             self.save_file("ocel_e2o_qualifiers")
         except Exception as e:
@@ -159,6 +160,6 @@ class DataService:
     # TODO
     def get_stats(self):
         pass
-    
+
     def save_file(self, file_name: str):
         pm4py.write.write_ocel2_json(self.ocel, file_name + ".jsonocel")
