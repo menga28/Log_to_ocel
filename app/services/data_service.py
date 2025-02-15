@@ -22,6 +22,7 @@ class DataService:
         self.error = None
         self.current_file = None
         self.df_size_normalized = 0
+        self.ocel = None
 
     def contains_nested_data(self, column):
         return any(isinstance(i, list) for i in column)
@@ -131,3 +132,26 @@ class DataService:
         logger.info("OCEL created: %s", self.ocel)
         self.ocel_info_extraction()
         self.get_stats()
+
+    def set_relationship_qualifiers(self, qualifier_map):
+        # qualifier_map is expected to be a dictionary mapping "ocel:type|ocel:activity" to a qualifier string.
+        try:
+            combination = self.ocel.relations[[
+                'ocel:type', 'ocel:activity', 'ocel:qualifier']].drop_duplicates()
+            for index, row in combination.iterrows():
+                key = f"{row['ocel:type']}|{row['ocel:activity']}"
+                new_qualifier = qualifier_map.get(key, row['ocel:qualifier'])
+                self.ocel.relations.loc[index,
+                                        'ocel:qualifier'] = new_qualifier
+            logger.info("Updated relationship qualifiers.")
+        except Exception as e:
+            logger.error("Error setting relationship qualifiers: %s", str(e))
+            raise e
+
+    # TODO
+    def ocel_info_extraction(self):
+        pass
+
+    # TODO
+    def get_stats(self):
+        pass

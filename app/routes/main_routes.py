@@ -89,3 +89,15 @@ def set_ocel_parameters():
         return jsonify({"message": "OCEL parameters set and OCEL created successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@main_bp.route('/set_relationship_qualifiers', methods=['POST'])
+def set_relationship_qualifiers():
+    try:
+        qualifier_map = request.json.get('qualifier_map', {})
+        logger.info("Received qualifier map: %s", qualifier_map)
+        data_service.set_relationship_qualifiers(qualifier_map)
+        return jsonify({"message": "Relationship qualifiers set successfully"}), 200
+    except Exception as e:
+        logger.error("Error setting relationship qualifiers: %s", str(e))
+        return jsonify({"error": str(e)}), 500

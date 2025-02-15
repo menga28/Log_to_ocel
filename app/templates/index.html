@@ -1,135 +1,130 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto bg-white p-8 rounded-lg shadow-md">
+  <div class="max-w-6xl mx-auto bg-white p-8 rounded-lg shadow-md">
     <h1 class="text-3xl font-bold mb-8 text-center">Data Analyzer</h1>
-    
+
     <div class="mb-8">
-        <div class="flex items-center justify-center w-full">
-            <label class="flex flex-col w-full h-32 border-4 border-dashed hover:bg-gray-100 hover:border-gray-300">
-                <div class="flex flex-col items-center justify-center pt-7">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-gray-400 group-hover:text-gray-600" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
-                    </svg>
-                    <p class="pt-1 text-sm tracking-wider text-gray-400 group-hover:text-gray-600">
-                        Select a file or drag and drop here
-                    </p>
-                </div>
-                <input type="file" class="opacity-0" accept=".csv,.json" id="fileInput" />
-            </label>
-        </div>
+      <div class="flex items-center justify-center w-full">
+        <label class="flex flex-col w-full h-32 border-4 border-dashed hover:bg-gray-100 hover:border-gray-300">
+          <div class="flex flex-col items-center justify-center pt-7">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-gray-400 group-hover:text-gray-600" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
+            </svg>
+            <p class="pt-1 text-sm tracking-wider text-gray-400 group-hover:text-gray-600">Select a file or drag and drop here</p>
+          </div>
+          <input type="file" class="opacity-0" accept=".csv,.json" id="fileInput" />
+        </label>
+      </div>
     </div>
 
     <div class="flex justify-center space-x-4 mb-8">
-        <button id="sampleBtn" class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 transition-colors">
-            Use Sample File
-        </button>
-        <button id="startMappingBtn" class="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 transition-colors" disabled>
-            Start OCEL Mapping
-        </button>
+      <button id="sampleBtn" class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 transition-colors">Use Sample File</button>
+      <button id="startMappingBtn" class="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 transition-colors" disabled>Start OCEL Mapping</button>
     </div>
 
     <div id="preview" class="hidden">
-        <h2 class="text-2xl font-semibold mb-4">Data Preview</h2>
-        <div class="overflow-x-auto mb-4">
-            <table class="min-w-full border-collapse">
-                <thead>
-                    <tr class="bg-gray-100">
-                        <!-- Headers will be dynamically added -->
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Data will be dynamically added -->
-                </tbody>
-            </table>
-        </div>
+      <h2 class="text-2xl font-semibold mb-4">Data Preview</h2>
+      <div class="overflow-x-auto mb-4">
+        <table class="min-w-full border-collapse">
+          <thead>
+            <tr class="bg-gray-100">
+              <!-- Headers will be dynamically added -->
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Data will be dynamically added -->
+          </tbody>
+        </table>
+      </div>
     </div>
-</div>
+  </div>
 
-<!-- Mapping Page Template -->
-<div id="mappingPage" class="hidden fixed inset-0 bg-white z-50 p-8">
+  <!-- Mapping Page Template -->
+  <div id="mappingPage" class="hidden fixed inset-0 bg-white z-50 p-8">
     <div class="max-w-6xl mx-auto">
-        <div class="flex justify-between mb-4">
-            <h2 class="text-2xl font-bold">Columns to normalize</h2>
-            <div class="space-x-4">
-                <button id="backBtn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
-                    Back
-                </button>
-                <button id="continueBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-                    Continue
-                </button>
-            </div>
+      <div class="flex justify-between mb-4">
+        <h2 class="text-2xl font-bold">Columns to normalize</h2>
+        <div class="space-x-4">
+          <button id="backBtn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Back</button>
+          <button id="continueBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Continue</button>
         </div>
+      </div>
 
-        <div class="mb-6 bg-gray-50 p-4 rounded">
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-                Nested Columns (select to normalize):
-            </label>
-            <select id="columnsToNormalize" class="w-full p-2 border rounded" multiple>
-                <!-- Options populated dynamically -->
-            </select>
-        </div>
+      <div class="mb-6 bg-gray-50 p-4 rounded">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Nested Columns (select to normalize):</label>
+        <select id="columnsToNormalize" class="w-full p-2 border rounded" multiple>
+          <!-- Options populated dynamically -->
+        </select>
+      </div>
 
-        <div class="mb-8">
-            <h3 class="text-lg font-semibold mb-4">Data Preview (First 10 Rows)</h3>
-            <div class="h-[500px] overflow-auto border rounded">
-                <table class="min-w-full">
-                    <thead class="bg-gray-50 sticky top-0">
-                        <tr>
-                            <!-- Headers populated dynamically -->
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Rows populated dynamically -->
-                    </tbody>
-                </table>
-            </div>
+      <div class="mb-8">
+        <h3 class="text-lg font-semibold mb-4">Data Preview (First 10 Rows)</h3>
+        <div class="h-[500px] overflow-auto border rounded">
+          <table class="min-w-full">
+            <thead class="bg-gray-50 sticky top-0">
+              <tr>
+                <!-- Headers populated dynamically -->
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Rows populated dynamically -->
+            </tbody>
+          </table>
         </div>
+      </div>
     </div>
-</div>
+  </div>
 
-<!-- Selection Page -->
-<div id="selectionPage" class="hidden fixed inset-0 bg-white z-50 p-8">
+  <!-- Selection Page -->
+  <div id="selectionPage" class="hidden fixed inset-0 bg-white z-50 p-8">
     <div class="max-w-6xl mx-auto">
-        <div class="flex justify-between mb-4">
-            <h2 class="text-2xl font-bold">Select Attributes</h2>
-            <div class="space-x-4">
-                <button id="backToMappingBtn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
-                    Back
-                </button>
-                <button id="finalizeBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-                    Finalize
-                </button>
-            </div>
+      <div class="flex justify-between mb-4">
+        <h2 class="text-2xl font-bold">Select Attributes</h2>
+        <div class="space-x-4">
+          <button id="backToMappingBtn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Back</button>
+          <button id="finalizeBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Finalize</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Activity Column:</label>
+          <select id="activitySelect" class="w-full p-2 border rounded"></select>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Activity Column:</label>
-                <select id="activitySelect" class="w-full p-2 border rounded"></select>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Timestamp Column:</label>
-                <select id="timestampSelect" class="w-full p-2 border rounded"></select>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Object Types:</label>
-                <select id="objectTypesSelect" class="w-full p-2 border rounded" multiple></select>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Additional Event Attributes:</label>
-                <select id="additionalEventAttributesSelect" class="w-full p-2 border rounded" multiple></select>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Main Object Columns</label>
-                <div id="objectTypeAttributesContainer"></div>
-            </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Timestamp Column:</label>
+          <select id="timestampSelect" class="w-full p-2 border rounded"></select>
         </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Object Types:</label>
+          <select id="objectTypesSelect" class="w-full p-2 border rounded" multiple></select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Additional Event Attributes:</label>
+          <select id="additionalEventAttributesSelect" class="w-full p-2 border rounded" multiple></select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Main Object Columns</label>
+          <div id="objectTypeAttributesContainer"></div>
+        </div>
+      </div>
     </div>
-</div>
+  </div>
 
+  <!-- Qualifier Page -->
+  <div id="qualifierPage" class="hidden fixed inset-0 bg-white z-50 p-8">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="text-2xl font-bold mb-4">Set Relationship Qualifier</h2>
+      <div id="qualifierContainer">
+        <!-- Each row will be added here dynamically -->
+      </div>
+      <button id="submitQualificationsBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Set Relationship Qualifier</button>
+      <button id="backFromQualifierBtn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Back</button>
+    </div>
+  </div>
 {% endblock %}

@@ -1,4 +1,8 @@
 document.addEventListener("DOMContentLoaded", function () {
+  // Global arrays for qualifier selects (update with your actual available values)
+  const availableTypes = ["txHash", "inputs_inputName", "sender", "contractAddress", "gasUsed", "activity"];
+  const availableActivities = ["approve", "sendFrom", "transfer"];
+
   const fileInput = document.getElementById("fileInput");
   const startMappingBtn = document.getElementById("startMappingBtn");
   const sampleBtn = document.getElementById("sampleBtn");
@@ -16,7 +20,6 @@ document.addEventListener("DOMContentLoaded", function () {
           body: formData,
         });
         if (!uploadResponse.ok) throw new Error("Upload failed");
-
         // Fetch preview data after upload
         const previewResponse = await fetch("/preview");
         if (!previewResponse.ok) throw new Error("Preview failed");
@@ -44,24 +47,23 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // Helper function to derive a schema (skeleton) from an object.
+  // Unified function to display preview data as a JSON skeleton.
+  // It derives a schema (keys with empty values) from the first sample record.
   function getSchemaFromObject(obj) {
     const schema = {};
     Object.keys(obj).forEach(key => {
       const val = obj[key];
       if (Array.isArray(val)) {
-        // If array is non-empty, derive schema from the first element; otherwise, leave as empty array.
         schema[key] = val.length > 0 ? [getSchemaFromObject(val[0])] : [];
       } else if (typeof val === "object" && val !== null) {
         schema[key] = getSchemaFromObject(val);
       } else {
-        schema[key] = ""; // Replace actual primitive values with empty string.
+        schema[key] = ""; // omit actual value
       }
     });
     return schema;
   }
 
-  // Unified function to display preview data as a JSON skeleton.
   function displayData(data) {
     let columns, sampleData, nestedColumns;
     if (data.preview_columns && data.sample_data) {
@@ -80,17 +82,17 @@ document.addEventListener("DOMContentLoaded", function () {
       throw new Error("Data structure not recognized");
     }
 
-    // Derive the schema from the first sample record
+    // Derive the JSON schema (skeleton) from the first sample record
     const firstRecord = sampleData[0] || {};
     const schema = getSchemaFromObject(firstRecord);
 
-    // Display the schema as formatted JSON in a <pre> element
+    // Display the schema in a <pre> element
     preview.innerHTML = "";
     const pre = document.createElement("pre");
     pre.textContent = JSON.stringify(schema, null, 2);
     preview.appendChild(pre);
 
-    // Update the "Columns to Normalize" select using nestedColumns
+    // Update "Columns to Normalize" select using nestedColumns
     const columnsToNormalize = document.getElementById("columnsToNormalize");
     columnsToNormalize.innerHTML = "";
     nestedColumns.forEach((column, index) => {
@@ -102,7 +104,7 @@ document.addEventListener("DOMContentLoaded", function () {
     preview.classList.remove("hidden");
   }
 
-  // The rest of the functions remain unchanged.
+  // setupMappingPage builds the full preview table on the mapping page.
   function setupMappingPage(data) {
     const columnsToNormalize = document.getElementById("columnsToNormalize");
     columnsToNormalize.innerHTML = "";
@@ -299,6 +301,99 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  // NEW: Qualifier Page functionality
+  // When finalize is clicked, instead show the qualifier page
+  document.getElementById("finalizeBtn").addEventListener("click", function () {
+    document.getElementById("selectionPage").classList.add("hidden");
+    document.getElementById("qualifierPage").classList.remove("hidden");
+    initializeQualifierRows();
+  });
+
+  function initializeQualifierRows() {
+    const container = document.getElementById("qualifierContainer");
+    container.innerHTML = "";
+    addQualifierRow();
+  }
+
+  function addQualifierRow() {
+    const container = document.getElementById("qualifierContainer");
+    const rowDiv = document.createElement("div");
+    rowDiv.className = "qualifier-row mb-2 flex space-x-2";
+    
+    const typeSelect = document.createElement("select");
+    typeSelect.className = "ocel-type-select p-2 border rounded";
+    availableTypes.forEach(type => {
+      const option = document.createElement("option");
+      option.value = type;
+      option.textContent = type;
+      typeSelect.appendChild(option);
+    });
+    
+    const activitySelect = document.createElement("select");
+    activitySelect.className = "ocel-activity-select p-2 border rounded";
+    availableActivities.forEach(act => {
+      const option = document.createElement("option");
+      option.value = act;
+      option.textContent = act;
+      activitySelect.appendChild(option);
+    });
+    
+    const qualifierInput = document.createElement("input");
+    qualifierInput.type = "text";
+    qualifierInput.placeholder = "Enter qualifier";
+    qualifierInput.className = "qualifier-input p-2 border rounded flex-grow";
+    
+    rowDiv.appendChild(typeSelect);
+    rowDiv.appendChild(activitySelect);
+    rowDiv.appendChild(qualifierInput);
+    container.appendChild(rowDiv);
+    
+    // When the last row has a non-empty qualifier, add a new row.
+    rowDiv.addEventListener("change", function () {
+      const rows = container.getElementsByClassName("qualifier-row");
+      if (rows[rows.length - 1] === rowDiv && qualifierInput.value.trim() !== "") {
+        addQualifierRow();
+      }
+    });
+  }
+
+  // When the user clicks "Set Relationship Qualifier" on the qualifier page,
+  // build the qualifier map and send it to the backend.
+  document.getElementById("submitQualificationsBtn").addEventListener("click", async function () {
+    const container = document.getElementById("qualifierContainer");
+    const rows = container.getElementsByClassName("qualifier-row");
+    const qualifierMap = {};
+    Array.from(rows).forEach(row => {
+      const type = row.querySelector(".ocel-type-select").value;
+      const activity = row.querySelector(".ocel-activity-select").value;
+      const qualifier = row.querySelector(".qualifier-input").value.trim();
+      if (qualifier !== "") {
+        // Use a string key: e.g., "txHash|approve"
+        qualifierMap[`${type}|${activity}`] = qualifier;
+      }
+    });
+    try {
+      const response = await fetch("/set_relationship_qualifiers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ qualifier_map: qualifierMap })
+      });
+      if (!response.ok) throw new Error("Setting relationship qualifiers failed");
+      const result = await response.json();
+      console.log(result.message);
+      // You can navigate to a success page or update the UI as needed.
+    } catch (error) {
+      console.error("Error:", error);
+      alert(error.message);
+    }
+  });
+
+  // Back button from qualifier page
+  document.getElementById("backFromQualifierBtn").addEventListener("click", function () {
+    document.getElementById("qualifierPage").classList.add("hidden");
+    document.getElementById("selectionPage").classList.remove("hidden");
+  });
+
   startMappingBtn.addEventListener("click", async function () {
     try {
       const response = await fetch("/preview");
@@ -332,55 +427,26 @@ document.addEventListener("DOMContentLoaded", function () {
     );
   });
 
-  document.getElementById("finalizeBtn").addEventListener("click", async function () {
-    // Get selected values for activity and timestamp
-    const activity = document.getElementById("activitySelect").value;
-    const timestamp = document.getElementById("timestampSelect").value;
-
-    // For object types and event attributes, get the selected options
-    const objectTypesSelect = document.getElementById("objectTypesSelect");
-    const eventsAttrsSelect = document.getElementById("additionalEventAttributesSelect");
-
-    const object_types = Array.from(objectTypesSelect.selectedOptions).map(opt => opt.value);
-    const events_attrs = Array.from(eventsAttrsSelect.selectedOptions).map(opt => opt.value);
-
-    // Build a dictionary from the dynamic Main Object Columns container:
-    // For each object type selected in objectTypesSelect, get its associated attributes.
+  // Finalize mapping and generate dictionary (old behavior, kept for debugging)
+  document.getElementById("oldFinalizeBtn")?.addEventListener("click", function () {
+    const mapping = {};
+    const activitySelect = document.getElementById("activitySelect");
+    const timestampSelect = document.getElementById("timestampSelect");
+    if (activitySelect.value) {
+      mapping["activity"] = [activitySelect.value];
+    }
+    if (timestampSelect.value) {
+      mapping["timestamp"] = [timestampSelect.value];
+    }
     const container = document.getElementById("objectTypeAttributesContainer");
-    let additional_object_attributes = {};
-    Array.from(container.children).forEach(child => {
+    Array.from(container.children).forEach((child) => {
       const objectType = child.id.replace("objectType_", "");
       const select = child.querySelector("select");
-      const attributes = Array.from(select.selectedOptions).map(opt => opt.value);
-      // The dictionary maps the object type to an array with the object type name and its attributes.
-      additional_object_attributes[objectType] = [objectType, ...attributes];
+      const attributes = Array.from(select.selectedOptions).map((opt) => opt.value);
+      mapping[objectType] = [objectType, ...attributes];
     });
-
-    // Build the parameters object. Note that object_attrs is the dictionary built above.
-    const params = {
-      activity,
-      timestamp,
-      object_types,
-      events_attrs,
-      object_attrs: additional_object_attributes
-    };
-
-    try {
-      const response = await fetch("/set_ocel_parameters", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(params)
-      });
-      if (!response.ok) throw new Error("Setting OCEL parameters failed");
-      const result = await response.json();
-      console.log(result.message);
-      // You can add further UI updates here
-    } catch (error) {
-      console.error("Error:", error);
-      alert(error.message);
-    }
+    console.log("Final mapping:", mapping);
   });
-
 
   const dropZone = document.querySelector("label");
   ["dragenter", "dragover"].forEach((eventName) => {
