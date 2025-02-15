@@ -167,7 +167,6 @@ class DataModel:
             additional_event_attributes=events_attrs,
             additional_object_attributes=object_attrs
         )
-        self.ocel.relations["ocel:qualifier"] = self.ocel.relations["ocel:type"]
         print(self.ocel)
         self.ocel_info_extraction()
         self.get_stats()

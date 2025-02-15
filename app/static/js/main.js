@@ -332,29 +332,55 @@ document.addEventListener("DOMContentLoaded", function () {
     );
   });
 
-  // Finalize mapping and generate dictionary
-  document.getElementById("finalizeBtn").addEventListener("click", function () {
-    const mapping = {};
-    const activitySelect = document.getElementById("activitySelect");
-    const timestampSelect = document.getElementById("timestampSelect");
+  document.getElementById("finalizeBtn").addEventListener("click", async function () {
+    // Get selected values for activity and timestamp
+    const activity = document.getElementById("activitySelect").value;
+    const timestamp = document.getElementById("timestampSelect").value;
 
-    if (activitySelect.value) {
-      mapping["activity"] = [activitySelect.value];
-    }
-    if (timestampSelect.value) {
-      mapping["timestamp"] = [timestampSelect.value];
-    }
+    // For object types and event attributes, get the selected options
+    const objectTypesSelect = document.getElementById("objectTypesSelect");
+    const eventsAttrsSelect = document.getElementById("additionalEventAttributesSelect");
 
+    const object_types = Array.from(objectTypesSelect.selectedOptions).map(opt => opt.value);
+    const events_attrs = Array.from(eventsAttrsSelect.selectedOptions).map(opt => opt.value);
+
+    // Build a dictionary from the dynamic Main Object Columns container:
+    // For each object type selected in objectTypesSelect, get its associated attributes.
     const container = document.getElementById("objectTypeAttributesContainer");
-    Array.from(container.children).forEach((child) => {
+    let additional_object_attributes = {};
+    Array.from(container.children).forEach(child => {
       const objectType = child.id.replace("objectType_", "");
       const select = child.querySelector("select");
-      const attributes = Array.from(select.selectedOptions).map((opt) => opt.value);
-      mapping[objectType] = [objectType, ...attributes];
+      const attributes = Array.from(select.selectedOptions).map(opt => opt.value);
+      // The dictionary maps the object type to an array with the object type name and its attributes.
+      additional_object_attributes[objectType] = [objectType, ...attributes];
     });
 
-    console.log("Final mapping:", mapping);
+    // Build the parameters object. Note that object_attrs is the dictionary built above.
+    const params = {
+      activity,
+      timestamp,
+      object_types,
+      events_attrs,
+      object_attrs: additional_object_attributes
+    };
+
+    try {
+      const response = await fetch("/set_ocel_parameters", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(params)
+      });
+      if (!response.ok) throw new Error("Setting OCEL parameters failed");
+      const result = await response.json();
+      console.log(result.message);
+      // You can add further UI updates here
+    } catch (error) {
+      console.error("Error:", error);
+      alert(error.message);
+    }
   });
+
 
   const dropZone = document.querySelector("label");
   ["dragenter", "dragover"].forEach((eventName) => {

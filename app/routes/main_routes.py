@@ -72,3 +72,20 @@ def handle_normalization():
     except Exception as e:
         logger.error(f"Error during normalization: {e}")
         return jsonify({"error": str(e)}), 500
+
+
+@main_bp.route('/set_ocel_parameters', methods=['POST'])
+def set_ocel_parameters():
+    try:
+        activity = request.json.get('activity')
+        timestamp = request.json.get('timestamp')
+        object_types = request.json.get('object_types', [])
+        events_attrs = request.json.get('events_attrs', [])
+        object_attrs = request.json.get('object_attrs', [])
+        logger.info("Setting OCEL parameters: activity=%s, timestamp=%s, object_types=%s, events_attrs=%s, object_attrs=%s",
+                    activity, timestamp, object_types, events_attrs, object_attrs)
+        data_service.set_ocel_parameters(
+            activity, timestamp, object_types, events_attrs, object_attrs)
+        return jsonify({"message": "OCEL parameters set and OCEL created successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

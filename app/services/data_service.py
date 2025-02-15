@@ -2,6 +2,7 @@ import pandas as pd
 import json
 import time
 import logging
+import pm4py
 
 logging.basicConfig(
     level=logging.INFO,
@@ -104,5 +105,29 @@ class DataService:
         self.df_normalized = pd.concat(normalized_dfs, ignore_index=True)
         self.df_sie_normalized = self.df_normalized.memory_usage(
             deep=True).sum() / 1024
-        logger.info(f"Head of normalized DataFrame:\n{self.df_normalized.columns.to_list}")
+        logger.info(
+            f"Head of normalized DataFrame:\n{self.df_normalized.columns.to_list}")
 
+    def set_ocel_parameters(self, activity, timestamp, object_types, events_attrs, object_attrs):
+        print("set_ocel_parameters:", activity, timestamp,
+              object_types, events_attrs, object_attrs)
+
+        if self.df_normalized is None:
+            raise ValueError("Normalized DataFrame is not available.")
+
+        try:
+            self.ocel = pm4py.convert.convert_log_to_ocel(
+                log=self.df_normalized,
+                activity_column=activity,
+                timestamp_column=timestamp,
+                object_types=object_types,
+                additional_event_attributes=events_attrs,
+                additional_object_attributes=object_attrs
+            )
+        except Exception as e:
+            logger.error("Error converting log to OCEL: %s", str(e))
+            raise e
+
+        logger.info("OCEL created: %s", self.ocel)
+        self.ocel_info_extraction()
+        self.get_stats()
