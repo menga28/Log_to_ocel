@@ -23,6 +23,7 @@ class DataService:
         self.current_file = None
         self.df_size_normalized = 0
         self.ocel = None
+        self.ocel_o2o = None
 
     def contains_nested_data(self, column):
         return any(isinstance(i, list) for i in column)
@@ -134,7 +135,7 @@ class DataService:
         self.get_stats()
         self.save_file("ocel_created")
 
-    def set_relationship_qualifiers(self, qualifier_map):
+    def set_e2o_relationship_qualifiers(self, qualifier_map):
         converted_map = {}
         for key, value in qualifier_map.items():
             converted_key = tuple(key.split("|"))
@@ -151,6 +152,43 @@ class DataService:
             self.save_file("ocel_e2o_qualifiers")
         except Exception as e:
             logger.error("Error setting relationship qualifiers: %s", str(e))
+            raise e
+
+    def o2o_enrichment(self, included_graphs=["object_interaction_graph"]):
+        if self.ocel is None:
+            raise ValueError("OCEL log has not been created. Please run set_ocel_parameters first.")
+        try:
+            # Enrich the existing OCEL with O2O relations.
+            self.ocel_o2o = pm4py.ocel_o2o_enrichment(self.ocel, included_graphs=included_graphs)
+            # Initialize the 'ocel:qualifier' field to None.
+            self.ocel_o2o.relations["ocel:qualifier"] = None
+            logger.info("O2O enrichment completed. OCEL_o2o created.")
+            self.save_file("ocel_o2o")
+        except Exception as e:
+            logger.error("Error during O2O enrichment: %s", str(e))
+            raise e
+
+    def set_o2o_relationship_qualifiers(self, qualifier_map):
+        # Convert keys from string "oid|oid_2" to tuple.
+        converted_map = {}
+        for key, value in qualifier_map.items():
+            converted_key = tuple(key.split("|"))
+            converted_map[converted_key] = value
+        try:
+            # Apply the mapping: update the qualifier with the provided value; if the qualifier remains empty, it will be dropped.
+            self.ocel_o2o.relations['ocel:qualifier'] = self.ocel_o2o.relations.apply(
+                lambda row: converted_map.get((row['ocel:oid'], row['ocel:oid_2']), row['ocel:qualifier']),
+                axis=1
+            )
+            # Drop rows where qualifier is null or an empty string.
+            self.ocel_o2o.relations = self.ocel_o2o.relations[
+                self.ocel_o2o.relations['ocel:qualifier'].notnull() &
+                (self.ocel_o2o.relations['ocel:qualifier'] != "")
+            ]
+            logger.info("Updated O2O relationship qualifiers and dropped rows with null qualifier.")
+            self.save_file("ocel_o2o_qualifiers")
+        except Exception as e:
+            logger.error("Error setting O2O relationship qualifiers: %s", str(e))
             raise e
 
     # TODO

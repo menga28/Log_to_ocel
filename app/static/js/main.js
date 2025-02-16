@@ -352,7 +352,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
     try {
-      const response = await fetch("/set_relationship_qualifiers", {
+      const response = await fetch("/set_e2o_relationship_qualifiers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ qualifier_map: qualifierMap })
