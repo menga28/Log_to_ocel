@@ -17,39 +17,52 @@ data_service = DataService()
 
 @main_bp.route('/')
 def index():
+    logger.info("📌 Rendering index page")
     return render_template('index.html')
 
 
 @main_bp.route('/upload', methods=['POST'])
 def upload_file():
+    logger.info("📂 Upload endpoint called")
     if 'file' not in request.files:
+        logger.error("❌ No file part in request")
         return jsonify({'error': 'No file part'}), 400
 
     file = request.files['file']
     if file.filename == '':
+        logger.error("❌ No selected file")
         return jsonify({'error': 'No selected file'}), 400
 
+    logger.info(f"📂 Processing file: {file.filename}")
     if file and file_service.allowed_file(file.filename):
         filepath = file_service.save_file(file)
+        logger.info(f"✅ File saved at {filepath}")
         df = data_service.load_dataframe(filepath)
         if df is not None:
             stats = {
                 "columns": list(df.columns),
                 "data_types": df.dtypes.astype(str).to_dict()
             }
+            logger.info(
+                f"✅ File processed successfully with {len(stats['columns'])} columns")
             return jsonify(stats)
         else:
+            logger.error(f"❌ Error loading DataFrame: {data_service.error}")
             return jsonify({'error': data_service.error}), 400
 
+    logger.error("❌ Invalid file type")
     return jsonify({'error': 'Invalid file type'}), 400
 
 
 @main_bp.route('/preview', methods=['GET'])
 def get_preview():
+    logger.info("🔍 Preview endpoint called")
     if data_service.df is None:
+        logger.error("❌ No data loaded for preview")
         return jsonify({"error": "No data loaded"}), 400
 
     preview_data = data_service.get_preview_data()
+    logger.info("✅ Preview data retrieved successfully")
     return jsonify({
         "nested_columns": data_service.nested_columns,
         "preview_columns": preview_data['columns'],
@@ -61,16 +74,20 @@ def get_preview():
 def handle_normalization():
     try:
         indexes = request.json.get('indexes', [])
+        logger.info(f"⚙️ Normalization started for indexes: {indexes}")
         data_service.normalize_data(indexes)
 
         if data_service.df_normalized is not None:
             normalized_columns = data_service.df_normalized.columns.tolist()
-            logging.info("Normalization completed successfully")
+            logger.info(
+                f"✅ Normalization completed successfully. Columns: {normalized_columns}")
             return jsonify({"message": "Normalization successful", "columns": normalized_columns}), 200
+
+        logger.error("❌ Normalization failed")
         return jsonify({"error": "Normalization failed"}), 400
 
     except Exception as e:
-        logger.error(f"Error during normalization: {e}")
+        logger.error(f"❌ Error during normalization: {e}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -82,19 +99,26 @@ def set_ocel_parameters():
         object_types = request.json.get('object_types', [])
         events_attrs = request.json.get('events_attrs', [])
         object_attrs = request.json.get('object_attrs', [])
-        logger.info("Setting OCEL parameters: activity=%s, timestamp=%s, object_types=%s, events_attrs=%s, object_attrs=%s",
-                    activity, timestamp, object_types, events_attrs, object_attrs)
+        logger.info(
+            f"⚙️ Setting OCEL parameters: activity={activity}, timestamp={timestamp}, object_types={object_types}")
+
         data_service.set_ocel_parameters(
             activity, timestamp, object_types, events_attrs, object_attrs)
+        logger.info("✅ OCEL parameters set successfully")
+
         data_service.o2o_enrichment()
+        logger.info("🔗 O2O enrichment completed")
+
         available_types = data_service.ocel.relations["ocel:type"].unique(
         ).tolist()
         available_activities = data_service.ocel.relations["ocel:activity"].unique(
         ).tolist()
+
         return jsonify({"message": "OCEL parameters set and OCEL created successfully",
                         "available_types": available_types,
                         "available_activities": available_activities}), 200
     except Exception as e:
+        logger.error(f"❌ Error in set_ocel_parameters: {e}")
         return jsonify({"error": str(e)}), 500
 
 
