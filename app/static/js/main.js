@@ -337,33 +337,165 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // When "Set Relationship Qualifier" is clicked, build the qualifier map and send it to the backend.
   document.getElementById("submitQualificationsBtn").addEventListener("click", async function () {
     const container = document.getElementById("qualifierContainer");
     const rows = container.getElementsByClassName("qualifier-row");
     const qualifierMap = {};
+
+    // Costruzione della mappa dei qualificatori e2o
     Array.from(rows).forEach(row => {
       const type = row.querySelector(".ocel-type-select").value;
       const activity = row.querySelector(".ocel-activity-select").value;
       const qualifier = row.querySelector(".qualifier-input").value.trim();
+
       if (qualifier !== "") {
-        // Build key as "type|activity"
         qualifierMap[`${type}|${activity}`] = qualifier;
       }
     });
+
     try {
+      // **Invia i dati per e2o**
       const response = await fetch("/set_e2o_relationship_qualifiers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ qualifier_map: qualifierMap })
       });
-      if (!response.ok) throw new Error("Setting relationship qualifiers failed");
+
+      if (!response.ok) throw new Error("Errore nella configurazione di E2O");
+
+      const result = await response.json();
+      console.log(result.message);
+
+      // **Passa automaticamente alla pagina O2O**
+      document.getElementById("qualifierPage").classList.add("hidden");
+      document.getElementById("o2oPage").classList.remove("hidden");
+
+      // **Inizializza i campi per O2O**
+      initializeO2OQualifierRows();
+
+    } catch (error) {
+      console.error("Errore:", error);
+      alert(error.message);
+    }
+  });
+
+  async function initializeO2OQualifierRows() {
+    const container = document.getElementById("o2oContainer");
+    container.innerHTML = "";
+
+    try {
+      const response = await fetch("/get_o2o_objects");
+      if (!response.ok) throw new Error("Errore nel recupero degli oggetti O2O");
+
+      const data = await response.json();
+      const oids = data.oids || [];
+      const oids_2 = data.oids_2 || [];
+
+      // **Crea una nuova riga con i selettori corretti**
+      addO2OQualifierRow(oids, oids_2);
+
+    } catch (error) {
+      console.error("Errore:", error);
+      alert(error.message);
+    }
+  }
+
+  function addO2OQualifierRow(oids, oids_2) {
+    const container = document.getElementById("o2oContainer");
+
+    // **Crea la riga principale per i selettori**
+    const rowDiv = document.createElement("div");
+    rowDiv.className = "o2o-qualifier-row flex items-center space-x-4 mb-2"; // Migliora layout
+
+    // **Colonna: Object Source**
+    const sourceDiv = document.createElement("div");
+    sourceDiv.className = "flex flex-col w-1/3";  // Imposta larghezza
+    const sourceLabel = document.createElement("label");
+    sourceLabel.textContent = "Object Source";
+    sourceLabel.className = "text-sm font-medium text-gray-700 mb-1";
+    const oidSelect = document.createElement("select");
+    oidSelect.className = "ocel-oid-select p-2 border rounded w-full"; // Ridimensiona
+    oids.forEach(oid => {
+      const option = document.createElement("option");
+      option.value = oid;
+      option.textContent = oid;
+      oidSelect.appendChild(option);
+    });
+    sourceDiv.appendChild(sourceLabel);
+    sourceDiv.appendChild(oidSelect);
+
+    // **Colonna: Object Target**
+    const targetDiv = document.createElement("div");
+    targetDiv.className = "flex flex-col w-1/3";  // Imposta larghezza
+    const targetLabel = document.createElement("label");
+    targetLabel.textContent = "Object Target";
+    targetLabel.className = "text-sm font-medium text-gray-700 mb-1";
+    const oid2Select = document.createElement("select");
+    oid2Select.className = "ocel-oid2-select p-2 border rounded w-full"; // Ridimensiona
+    oids_2.forEach(oid2 => {
+      const option = document.createElement("option");
+      option.value = oid2;
+      option.textContent = oid2;
+      oid2Select.appendChild(option);
+    });
+    targetDiv.appendChild(targetLabel);
+    targetDiv.appendChild(oid2Select);
+
+    // **Colonna: Relationship Qualifier**
+    const qualifierDiv = document.createElement("div");
+    qualifierDiv.className = "flex flex-col w-1/3"; // Imposta larghezza
+    const qualifierLabel = document.createElement("label");
+    qualifierLabel.textContent = "Relationship Qualifier";
+    qualifierLabel.className = "text-sm font-medium text-gray-700 mb-1";
+    const qualifierInput = document.createElement("input");
+    qualifierInput.type = "text";
+    qualifierInput.placeholder = "Enter qualifier";
+    qualifierInput.className = "o2o-qualifier-input p-2 border rounded w-full"; // Ridimensiona
+    qualifierDiv.appendChild(qualifierLabel);
+    qualifierDiv.appendChild(qualifierInput);
+
+    // **Aggiunge tutti gli elementi alla riga**
+    rowDiv.appendChild(sourceDiv);
+    rowDiv.appendChild(targetDiv);
+    rowDiv.appendChild(qualifierDiv);
+
+    container.appendChild(rowDiv);
+  }
+
+
+  document.getElementById("exportO2OBtn").addEventListener("click", async function () {
+    const container = document.getElementById("o2oContainer");
+    const rows = container.getElementsByClassName("o2o-qualifier-row");
+    const qualifierMap = {};
+
+    Array.from(rows).forEach(row => {
+      const oid = row.querySelector(".ocel-oid-select").value;
+      const oid2 = row.querySelector(".ocel-oid2-select").value;
+      const qualifier = row.querySelector(".o2o-qualifier-input").value.trim();
+
+      if (qualifier !== "") {
+        qualifierMap[`${oid}|${oid2}`] = qualifier;
+      }
+    });
+
+    try {
+      const response = await fetch("/set_o2o_relationship_qualifiers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ qualifier_map: qualifierMap })
+      });
+      if (!response.ok) throw new Error("Errore nella configurazione di O2O");
       const result = await response.json();
       console.log(result.message);
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Errore:", error);
       alert(error.message);
     }
+  });
+
+  document.getElementById("backFromO2OBtn").addEventListener("click", function () {
+    document.getElementById("o2oPage").classList.add("hidden");
+    document.getElementById("qualifierPage").classList.remove("hidden");
   });
 
   // Back button from qualifier page.

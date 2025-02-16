@@ -90,3 +90,9 @@ htmlcov/
 controller/__pycache__/controller.cpython-311.pyc
 *.pyc
 /Datasets/pancacke100txs
+ocel_created.jsonocel
+ocel_e2o_qualifiers.jsonocel
+ocel_o2o_qualifiers.jsonocel
+ocel_o2o.jsonocel
+ocel_e2o_qualifiers.jsonocel
+ocel_created.jsonocel

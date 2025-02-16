@@ -111,11 +111,29 @@ class DataService:
             f"Head of normalized DataFrame:\n{self.df_normalized.columns.to_list}")
 
     def set_ocel_parameters(self, activity, timestamp, object_types, events_attrs, object_attrs):
-        print("set_ocel_parameters:", activity, timestamp,
-              object_types, events_attrs, object_attrs)
+        logger.info(f"📌 set_ocel_parameters called with: "
+                    f"activity={activity}, timestamp={timestamp}, object_types={object_types}, "
+                    f"events_attrs={events_attrs}, object_attrs={object_attrs}")
 
         if self.df_normalized is None:
+            logger.error("❌ Error: Normalized DataFrame is not available.")
             raise ValueError("Normalized DataFrame is not available.")
+
+        # **Controllo se le colonne esistono**
+        if activity not in self.df_normalized.columns:
+            logger.error(
+                f"❌ Error: Activity column '{activity}' not found in DataFrame.")
+            raise ValueError(
+                f"Activity column '{activity}' not found in DataFrame.")
+
+        if timestamp not in self.df_normalized.columns:
+            logger.error(
+                f"❌ Error: Timestamp column '{timestamp}' not found in DataFrame.")
+            raise ValueError(
+                f"Timestamp column '{timestamp}' not found in DataFrame.")
+
+        logger.info(
+            f"🔹 Available columns in df_normalized: {self.df_normalized.columns.tolist()}")
 
         try:
             self.ocel = pm4py.convert.convert_log_to_ocel(
@@ -126,14 +144,15 @@ class DataService:
                 additional_event_attributes=events_attrs,
                 additional_object_attributes=object_attrs
             )
+            logger.info("✅ OCEL log created successfully!")
+
         except Exception as e:
-            logger.error("Error converting log to OCEL: %s", str(e))
+            logger.error(f"❌ Error converting log to OCEL: {str(e)}")
             raise e
 
-        logger.info("OCEL created: %s", self.ocel)
         self.ocel_info_extraction()
         self.get_stats()
-        self.save_file("ocel_created")
+        self.save_file(self.ocel, "ocel_created")
 
     def set_e2o_relationship_qualifiers(self, qualifier_map):
         converted_map = {}
@@ -149,21 +168,23 @@ class DataService:
             self.ocel.relations = self.ocel.relations[self.ocel.relations['ocel:qualifier'].notnull(
             )]
             logger.info("Updated relationship qualifiers.")
-            self.save_file("ocel_e2o_qualifiers")
+            self.save_file(self.ocel, "ocel_e2o_qualifiers")
         except Exception as e:
             logger.error("Error setting relationship qualifiers: %s", str(e))
             raise e
 
     def o2o_enrichment(self, included_graphs=["object_interaction_graph"]):
         if self.ocel is None:
-            raise ValueError("OCEL log has not been created. Please run set_ocel_parameters first.")
+            raise ValueError(
+                "OCEL log has not been created. Please run set_ocel_parameters first.")
         try:
             # Enrich the existing OCEL with O2O relations.
-            self.ocel_o2o = pm4py.ocel_o2o_enrichment(self.ocel, included_graphs=included_graphs)
+            self.ocel_o2o = pm4py.ocel_o2o_enrichment(
+                self.ocel, included_graphs=included_graphs)
             # Initialize the 'ocel:qualifier' field to None.
-            self.ocel_o2o.relations["ocel:qualifier"] = None
+            self.ocel_o2o.o2o["ocel:qualifier"] = None
             logger.info("O2O enrichment completed. OCEL_o2o created.")
-            self.save_file("ocel_o2o")
+            self.save_file(self.ocel_o2o, "ocel_o2o")
         except Exception as e:
             logger.error("Error during O2O enrichment: %s", str(e))
             raise e
@@ -176,19 +197,22 @@ class DataService:
             converted_map[converted_key] = value
         try:
             # Apply the mapping: update the qualifier with the provided value; if the qualifier remains empty, it will be dropped.
-            self.ocel_o2o.relations['ocel:qualifier'] = self.ocel_o2o.relations.apply(
-                lambda row: converted_map.get((row['ocel:oid'], row['ocel:oid_2']), row['ocel:qualifier']),
+            self.ocel_o2o.o2o['ocel:qualifier'] = self.ocel_o2o.o2o.apply(
+                lambda row: converted_map.get(
+                    (row['ocel:oid'], row['ocel:oid_2']), row['ocel:qualifier']),
                 axis=1
             )
             # Drop rows where qualifier is null or an empty string.
-            self.ocel_o2o.relations = self.ocel_o2o.relations[
-                self.ocel_o2o.relations['ocel:qualifier'].notnull() &
-                (self.ocel_o2o.relations['ocel:qualifier'] != "")
+            self.ocel_o2o.o2o = self.ocel_o2o.o2o[
+                self.ocel_o2o.o2o['ocel:qualifier'].notnull() &
+                (self.ocel_o2o.o2o['ocel:qualifier'] != "")
             ]
-            logger.info("Updated O2O relationship qualifiers and dropped rows with null qualifier.")
-            self.save_file("ocel_o2o_qualifiers")
+            logger.info(
+                "Updated O2O relationship qualifiers and dropped rows with null qualifier.")
+            self.save_file(self.ocel_o2o, "ocel_o2o_qualifiers")
         except Exception as e:
-            logger.error("Error setting O2O relationship qualifiers: %s", str(e))
+            logger.error(
+                "Error setting O2O relationship qualifiers: %s", str(e))
             raise e
 
     # TODO
@@ -199,5 +223,11 @@ class DataService:
     def get_stats(self):
         pass
 
-    def save_file(self, file_name: str):
-        pm4py.write.write_ocel2_json(self.ocel, file_name + ".jsonocel")
+    def save_file(self, obj, file_name: str):
+        try:
+            logger.info(f"📂 Saving OCEL log to {file_name}.jsonocel")
+            pm4py.write.write_ocel2_json(obj, file_name + ".jsonocel")
+            logger.info("✅ OCEL log saved successfully!")
+        except Exception as e:
+            logger.error(f"❌ Error saving OCEL log: {str(e)}")
+            raise e

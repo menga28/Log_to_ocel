@@ -86,6 +86,7 @@ def set_ocel_parameters():
                     activity, timestamp, object_types, events_attrs, object_attrs)
         data_service.set_ocel_parameters(
             activity, timestamp, object_types, events_attrs, object_attrs)
+        data_service.o2o_enrichment()
         available_types = data_service.ocel.relations["ocel:type"].unique(
         ).tolist()
         available_activities = data_service.ocel.relations["ocel:activity"].unique(
@@ -106,4 +107,39 @@ def set_e2o_relationship_qualifiers():
         return jsonify({"message": "Relationship qualifiers set successfully"}), 200
     except Exception as e:
         logger.error("Error setting relationship qualifiers: %s", str(e))
+        return jsonify({"error": str(e)}), 500
+
+
+@main_bp.route('/set_o2o_relationship_qualifiers', methods=['POST'])
+def set_o2o_relationship_qualifiers():
+    try:
+        qualifier_map = request.json.get('qualifier_map', {})
+        logger.info("Received O2O qualifier map: %s", qualifier_map)
+        data_service.set_o2o_relationship_qualifiers(qualifier_map)
+        return jsonify({"message": "O2O Relationship qualifiers set successfully"}), 200
+    except Exception as e:
+        logger.error("Error setting O2O relationship qualifiers: %s", str(e))
+        return jsonify({"error": str(e)}), 500
+
+
+@main_bp.route('/get_o2o_objects', methods=['GET'])
+def get_o2o_objects():
+    try:
+        if data_service.ocel_o2o is None:
+            logger.error("❌ O2O data not initialized")
+            return jsonify({"error": "O2O data not available"}), 400
+
+        logger.info(
+            f"✅ O2O data found: {len(data_service.ocel_o2o.o2o)} relations")
+
+        oids = data_service.ocel_o2o.o2o["ocel:oid"].unique().tolist()
+        oids_2 = data_service.ocel_o2o.o2o["ocel:oid_2"].unique(
+        ).tolist()
+
+        logger.info(f"🔹 OIDs found: {oids}")
+        logger.info(f"🔹 OIDs_2 found: {oids_2}")
+
+        return jsonify({"oids": oids, "oids_2": oids_2}), 200
+    except Exception as e:
+        logger.error(f"❌ Error in get_o2o_objects: {e}")
         return jsonify({"error": str(e)}), 500
