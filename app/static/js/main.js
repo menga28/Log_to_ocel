@@ -1,5 +1,8 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // Declare as "let" so we can update them dynamically after OCEL creation.
+  // Variabile per la larghezza fissa dei selettori (modificabile in un'unica soluzione)
+  const SELECTOR_WIDTH = "w-64";
+
+  // Dichiarazioni come "let" per aggiornamenti dinamici dopo la creazione dell'OCEL.
   let availableTypes = ["txHash", "inputs_inputName", "sender", "contractAddress", "gasUsed", "activity"];
   let availableActivities = ["approve", "sendFrom", "transfer"];
 
@@ -45,7 +48,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // Helper: Derive a JSON schema (skeleton) from an object.
+  // Helper: Deriva uno schema JSON (scheletro) da un oggetto.
   function getSchemaFromObject(obj) {
     const schema = {};
     Object.keys(obj).forEach(key => {
@@ -55,13 +58,13 @@ document.addEventListener("DOMContentLoaded", function () {
       } else if (typeof val === "object" && val !== null) {
         schema[key] = getSchemaFromObject(val);
       } else {
-        schema[key] = ""; // omit actual value
+        schema[key] = ""; // omette il valore reale
       }
     });
     return schema;
   }
 
-  // Display preview data on the home screen.
+  // Visualizza i dati di anteprima nella home.
   function displayData(data) {
     let columns, sampleData, nestedColumns;
     if (data.preview_columns && data.sample_data) {
@@ -85,7 +88,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const pre = document.createElement("pre");
     pre.textContent = JSON.stringify(schema, null, 2);
     preview.appendChild(pre);
-    // Update "Columns to Normalize" select.
+    // Aggiorna il select "Columns to Normalize"
     const columnsToNormalize = document.getElementById("columnsToNormalize");
     columnsToNormalize.innerHTML = "";
     nestedColumns.forEach((column, index) => {
@@ -98,10 +101,10 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // --- Mapping Page ---
-  function setupMappingPage(data) {
+  function setupMappingPage(previewData) {
     const columnsToNormalize = document.getElementById("columnsToNormalize");
     columnsToNormalize.innerHTML = "";
-    data.nested_columns.forEach((col, index) => {
+    previewData.nested_columns.forEach((col, index) => {
       const option = document.createElement("option");
       option.value = index;
       option.textContent = col;
@@ -120,15 +123,15 @@ document.addEventListener("DOMContentLoaded", function () {
     const tbody = table.querySelector("tbody");
     thead.innerHTML = "";
     tbody.innerHTML = "";
-    data.preview_columns.forEach(col => {
+    previewData.preview_columns.forEach(col => {
       const th = document.createElement("th");
       th.textContent = col;
       th.className = "px-4 py-2 bg-gray-100 sticky top-0";
       thead.appendChild(th);
     });
-    data.sample_data.slice(0, 10).forEach(row => {
+    previewData.sample_data.slice(0, 10).forEach(row => {
       const tr = document.createElement("tr");
-      data.preview_columns.forEach(col => {
+      previewData.preview_columns.forEach(col => {
         const td = document.createElement("td");
         let content = row[col];
         if (typeof content === "object") {
@@ -144,7 +147,7 @@ document.addEventListener("DOMContentLoaded", function () {
       mappingPage.classList.add("hidden");
       document.getElementById("results").classList.remove("hidden");
     });
-    // /normalize call: Send selected nested columns indexes.
+    // Chiamata a /normalize: invia gli indici delle colonne annidate selezionate.
     document.getElementById("continueBtn").addEventListener("click", async () => {
       const selectedOptions = Array.from(columnsToNormalize.selectedOptions);
       const indexes = selectedOptions.map(opt => parseInt(opt.value));
@@ -165,7 +168,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
 
-    // Populate the Select Attributes page.
+    // Popola la pagina Select Attributes.
     function setupSelectionPage(columns) {
       const selectionPage = document.getElementById("selectionPage");
       selectionPage.classList.remove("hidden");
@@ -210,7 +213,7 @@ document.addEventListener("DOMContentLoaded", function () {
       $(objectTypesSelect).on("change", function () {
         updateObjectTypeAttributesContainer(columns);
       });
-      // Finalize button in the Select Attributes page calls /set_ocel_parameters.
+      // Il bottone Finalize nella pagina Select Attributes chiama /set_ocel_parameters.
       document.getElementById("finalizeBtn").addEventListener("click", async function () {
         const activity = activitySelect.value;
         const timestamp = timestampSelect.value;
@@ -239,7 +242,7 @@ document.addEventListener("DOMContentLoaded", function () {
           if (!response.ok) throw new Error("Setting OCEL parameters failed");
           const result = await response.json();
           console.log(result.message);
-          // Update dynamic qualifier values with the ones received from backend.
+          // Aggiorna i qualificatori dinamici con quelli ricevuti dal backend.
           availableTypes = result.available_types;
           availableActivities = result.available_activities;
           document.getElementById("selectionPage").classList.add("hidden");
@@ -253,7 +256,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // Update dynamic object attributes container based on selected object types.
+  // Aggiorna dinamicamente il container degli attributi degli oggetti in base agli object types selezionati.
   function updateObjectTypeAttributesContainer(columns) {
     const objectTypesSelect = document.getElementById("objectTypesSelect");
     const container = document.getElementById("objectTypeAttributesContainer");
@@ -294,42 +297,92 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // --- QUALIFIER PAGE FUNCTIONS ---
+  // --- FUNZIONI PER LA PAGINA QUALIFIER ---
+
+  // Inizializza le righe per la qualifica degli E2O.
   function initializeQualifierRows() {
     const container = document.getElementById("qualifierContainer");
     container.innerHTML = "";
+
+    // Header per E2O: "Object Types", "Event Types", "Relationship qualifier"
+    const headerRow = document.createElement("div");
+    headerRow.className = "qualifier-header flex space-x-2 mb-2 font-bold";
+    
+    const headerObjTypes = document.createElement("div");
+    headerObjTypes.textContent = "Object Types";
+    headerObjTypes.className = `${SELECTOR_WIDTH} text-center`;
+    
+    const headerEvtTypes = document.createElement("div");
+    headerEvtTypes.textContent = "Event Types";
+    headerEvtTypes.className = `${SELECTOR_WIDTH} text-center`;
+    
+    const headerQualifier = document.createElement("div");
+    headerQualifier.textContent = "Relationship qualifier";
+    headerQualifier.className = `${SELECTOR_WIDTH} text-center`;
+    
+    // Colonna per il pulsante di eliminazione
+    const headerDelete = document.createElement("div");
+    headerDelete.className = "w-8";
+    
+    headerRow.appendChild(headerObjTypes);
+    headerRow.appendChild(headerEvtTypes);
+    headerRow.appendChild(headerQualifier);
+    headerRow.appendChild(headerDelete);
+    container.appendChild(headerRow);
+
     addQualifierRow();
   }
 
+  // Aggiunge una riga per la qualifica degli E2O, con pulsante "X" per eliminare.
   function addQualifierRow() {
     const container = document.getElementById("qualifierContainer");
     const rowDiv = document.createElement("div");
-    rowDiv.className = "qualifier-row mb-2 flex space-x-2";
+    rowDiv.className = "qualifier-row mb-2 flex space-x-2 items-center";
+
+    // Select per Object Types (availableTypes)
     const typeSelect = document.createElement("select");
-    typeSelect.className = "ocel-type-select p-2 border rounded";
+    typeSelect.className = "ocel-type-select p-2 border rounded " + SELECTOR_WIDTH;
     availableTypes.forEach(type => {
       const option = document.createElement("option");
       option.value = type;
       option.textContent = type;
       typeSelect.appendChild(option);
     });
+
+    // Select per Event Types (availableActivities)
     const activitySelect = document.createElement("select");
-    activitySelect.className = "ocel-activity-select p-2 border rounded";
+    activitySelect.className = "ocel-activity-select p-2 border rounded " + SELECTOR_WIDTH;
     availableActivities.forEach(act => {
       const option = document.createElement("option");
       option.value = act;
       option.textContent = act;
       activitySelect.appendChild(option);
     });
+
+    // Input per il Relationship qualifier
     const qualifierInput = document.createElement("input");
     qualifierInput.type = "text";
     qualifierInput.placeholder = "Enter qualifier";
-    qualifierInput.className = "qualifier-input p-2 border rounded flex-grow";
+    qualifierInput.className = "qualifier-input p-2 border rounded " + SELECTOR_WIDTH;
+
+    // Aggiunge gli elementi alla riga
     rowDiv.appendChild(typeSelect);
     rowDiv.appendChild(activitySelect);
     rowDiv.appendChild(qualifierInput);
+
+    // Pulsante "X" per eliminare la riga
+    const deleteButton = document.createElement("button");
+    deleteButton.textContent = "X";
+    deleteButton.className = "delete-row-button p-2 bg-red-500 text-white rounded";
+    deleteButton.addEventListener("click", function() {
+      rowDiv.remove();
+    });
+    rowDiv.appendChild(deleteButton);
+
     container.appendChild(rowDiv);
-    rowDiv.addEventListener("change", function () {
+
+    // Se l'input dell'ultima riga viene compilato, aggiunge automaticamente una nuova riga.
+    qualifierInput.addEventListener("input", function () {
       const rows = container.getElementsByClassName("qualifier-row");
       if (rows[rows.length - 1] === rowDiv && qualifierInput.value.trim() !== "") {
         addQualifierRow();
@@ -342,7 +395,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const rows = container.getElementsByClassName("qualifier-row");
     const qualifierMap = {};
 
-    // Costruzione della mappa dei qualificatori e2o
+    // Costruzione della mappa dei qualificatori E2O
     Array.from(rows).forEach(row => {
       const type = row.querySelector(".ocel-type-select").value;
       const activity = row.querySelector(".ocel-activity-select").value;
@@ -354,7 +407,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     try {
-      // **Invia i dati per e2o**
+      // Invio dei dati per E2O
       const response = await fetch("/set_e2o_relationship_qualifiers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -366,11 +419,11 @@ document.addEventListener("DOMContentLoaded", function () {
       const result = await response.json();
       console.log(result.message);
 
-      // **Passa automaticamente alla pagina O2O**
+      // Passa automaticamente alla pagina O2O
       document.getElementById("qualifierPage").classList.add("hidden");
       document.getElementById("o2oPage").classList.remove("hidden");
 
-      // **Inizializza i campi per O2O**
+      // Inizializza i campi per O2O
       initializeO2OQualifierRows();
 
     } catch (error) {
@@ -379,9 +432,35 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
+  // Inizializza le righe per la qualifica degli O2O.
   async function initializeO2OQualifierRows() {
     const container = document.getElementById("o2oContainer");
     container.innerHTML = "";
+
+    // Header per O2O: "Object Source", "Object Target", "Relationship Qualifier"
+    const headerRow = document.createElement("div");
+    headerRow.className = "o2o-header flex items-center space-x-2 mb-2 font-bold";
+    
+    const headerSource = document.createElement("div");
+    headerSource.textContent = "Object Source";
+    headerSource.className = `${SELECTOR_WIDTH} text-center`;
+    
+    const headerTarget = document.createElement("div");
+    headerTarget.textContent = "Object Target";
+    headerTarget.className = `${SELECTOR_WIDTH} text-center`;
+    
+    const headerQualifier = document.createElement("div");
+    headerQualifier.textContent = "Relationship Qualifier";
+    headerQualifier.className = `${SELECTOR_WIDTH} text-center`;
+    
+    const headerDelete = document.createElement("div");
+    headerDelete.className = "w-8";
+    
+    headerRow.appendChild(headerSource);
+    headerRow.appendChild(headerTarget);
+    headerRow.appendChild(headerQualifier);
+    headerRow.appendChild(headerDelete);
+    container.appendChild(headerRow);
 
     try {
       const response = await fetch("/get_o2o_objects");
@@ -391,7 +470,6 @@ document.addEventListener("DOMContentLoaded", function () {
       const oids = data.oids || [];
       const oids_2 = data.oids_2 || [];
 
-      // **Crea una nuova riga con i selettori corretti**
       addO2OQualifierRow(oids, oids_2);
 
     } catch (error) {
@@ -400,68 +478,67 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  // Aggiunge una riga per la qualifica degli O2O, senza etichette duplicate (solo i campi),
+  // con dimensioni statiche (classe SELECTOR_WIDTH) e pulsante "X" per eliminare.
   function addO2OQualifierRow(oids, oids_2) {
     const container = document.getElementById("o2oContainer");
 
-    // **Crea la riga principale per i selettori**
     const rowDiv = document.createElement("div");
-    rowDiv.className = "o2o-qualifier-row flex items-center space-x-4 mb-2"; // Migliora layout
+    rowDiv.className = "o2o-qualifier-row flex items-center space-x-2 mb-2";
 
-    // **Colonna: Object Source**
-    const sourceDiv = document.createElement("div");
-    sourceDiv.className = "flex flex-col w-1/3";  // Imposta larghezza
-    const sourceLabel = document.createElement("label");
-    sourceLabel.textContent = "Object Source";
-    sourceLabel.className = "text-sm font-medium text-gray-700 mb-1";
-    const oidSelect = document.createElement("select");
-    oidSelect.className = "ocel-oid-select p-2 border rounded w-full"; // Ridimensiona
+    // Select per Object Source (senza label, per uniformità con E2O)
+    const sourceSelect = document.createElement("select");
+    sourceSelect.className = "ocel-oid-select p-2 border rounded " + SELECTOR_WIDTH;
     oids.forEach(oid => {
       const option = document.createElement("option");
       option.value = oid;
       option.textContent = oid;
-      oidSelect.appendChild(option);
+      sourceSelect.appendChild(option);
     });
-    sourceDiv.appendChild(sourceLabel);
-    sourceDiv.appendChild(oidSelect);
 
-    // **Colonna: Object Target**
-    const targetDiv = document.createElement("div");
-    targetDiv.className = "flex flex-col w-1/3";  // Imposta larghezza
-    const targetLabel = document.createElement("label");
-    targetLabel.textContent = "Object Target";
-    targetLabel.className = "text-sm font-medium text-gray-700 mb-1";
-    const oid2Select = document.createElement("select");
-    oid2Select.className = "ocel-oid2-select p-2 border rounded w-full"; // Ridimensiona
+    // Select per Object Target
+    const targetSelect = document.createElement("select");
+    targetSelect.className = "ocel-oid2-select p-2 border rounded " + SELECTOR_WIDTH;
     oids_2.forEach(oid2 => {
       const option = document.createElement("option");
       option.value = oid2;
       option.textContent = oid2;
-      oid2Select.appendChild(option);
+      targetSelect.appendChild(option);
     });
-    targetDiv.appendChild(targetLabel);
-    targetDiv.appendChild(oid2Select);
 
-    // **Colonna: Relationship Qualifier**
-    const qualifierDiv = document.createElement("div");
-    qualifierDiv.className = "flex flex-col w-1/3"; // Imposta larghezza
-    const qualifierLabel = document.createElement("label");
-    qualifierLabel.textContent = "Relationship Qualifier";
-    qualifierLabel.className = "text-sm font-medium text-gray-700 mb-1";
+    // Input per Relationship Qualifier
     const qualifierInput = document.createElement("input");
     qualifierInput.type = "text";
     qualifierInput.placeholder = "Enter qualifier";
-    qualifierInput.className = "o2o-qualifier-input p-2 border rounded w-full"; // Ridimensiona
-    qualifierDiv.appendChild(qualifierLabel);
-    qualifierDiv.appendChild(qualifierInput);
+    qualifierInput.className = "o2o-qualifier-input p-2 border rounded " + SELECTOR_WIDTH;
 
-    // **Aggiunge tutti gli elementi alla riga**
-    rowDiv.appendChild(sourceDiv);
-    rowDiv.appendChild(targetDiv);
-    rowDiv.appendChild(qualifierDiv);
+    // Pulsante "X" per eliminare la riga
+    const deleteButton = document.createElement("button");
+    deleteButton.textContent = "X";
+    deleteButton.className = "delete-row-button p-2 bg-red-500 text-white rounded";
+    deleteButton.addEventListener("click", function() {
+      rowDiv.remove();
+    });
+    const deleteButtonContainer = document.createElement("div");
+    deleteButtonContainer.className = "w-8";
+    deleteButtonContainer.appendChild(deleteButton);
+
+    // Aggiunge i campi alla riga
+    rowDiv.appendChild(sourceSelect);
+    rowDiv.appendChild(targetSelect);
+    rowDiv.appendChild(qualifierInput);
+    rowDiv.appendChild(deleteButtonContainer);
 
     container.appendChild(rowDiv);
-  }
 
+    // Se l'input dell'ultima riga viene compilato, aggiunge automaticamente una nuova riga.
+    qualifierInput.addEventListener("input", function() {
+      const rows = container.getElementsByClassName("o2o-qualifier-row");
+      if (rows[rows.length - 1] === rowDiv && qualifierInput.value.trim() !== "") {
+        addO2OQualifierRow(oids, oids_2);
+      }
+    });
+  }
 
   document.getElementById("exportO2OBtn").addEventListener("click", async function () {
     const container = document.getElementById("o2oContainer");
@@ -498,13 +575,13 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("qualifierPage").classList.remove("hidden");
   });
 
-  // Back button from qualifier page.
+  // Bottone Back dalla pagina qualifier.
   document.getElementById("backFromQualifierBtn").addEventListener("click", function () {
     document.getElementById("qualifierPage").classList.add("hidden");
     document.getElementById("selectionPage").classList.remove("hidden");
   });
 
-  // "Start OCEL Mapping" button on the home screen.
+  // Bottone "Start OCEL Mapping" nella home.
   startMappingBtn.addEventListener("click", async function () {
     try {
       const response = await fetch("/preview");
