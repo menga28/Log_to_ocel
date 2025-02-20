@@ -601,17 +601,28 @@ document.addEventListener("DOMContentLoaded", function () {
     return qualifierMap;
   }
 
+  // Modifica qui: Export Complete Mapping ora scarica il file OCEL aggiornato
   document.getElementById("exportO2OBtn").addEventListener("click", async function () {
     saveO2OData();
     try {
+      // Effettua la POST per aggiornare i qualificatori O2O
       const response = await fetch("/set_o2o_relationship_qualifiers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ qualifier_map: buildO2OQualifierMap() })
       });
       if (!response.ok) throw new Error("Errore nella configurazione di O2O");
-      const result = await response.json();
-      console.log(result.message);
+
+      // Ora, supponendo che il server restituisca il file OCEL aggiornato come attachment,
+      // otteniamo il blob e lo scarichiamo.
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "ocel_updated.jsonocel"; // Nome del file che verrà scaricato
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
     } catch (error) {
       console.error("Errore:", error);
       alert(error.message);

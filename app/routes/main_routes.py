@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, render_template, request, jsonify, send_file
 from app.services.file_service import FileService
 from app.services.data_service import DataService
 import os
@@ -140,10 +140,19 @@ def set_o2o_relationship_qualifiers():
         qualifier_map = request.json.get('qualifier_map', {})
         logger.info("Received O2O qualifier map: %s", qualifier_map)
         data_service.set_o2o_relationship_qualifiers(qualifier_map)
-        return jsonify({"message": "O2O Relationship qualifiers set successfully"}), 200
+        
+        # Supponiamo che data_service.save_file abbia salvato il file OCEL aggiornato
+        # nel percorso corrente con nome "ocel_o2o_qualifiers.jsonocel".
+        file_name = "ocel_o2o_qualifiers.jsonocel"
+        file_path = os.path.join(os.getcwd(), file_name)
+        logger.info("Sending updated OCEL file from %s", file_path)
+        
+        # Restituisco il file come attachment; il browser lo scaricherà con il nome "ocel_updated.jsonocel"
+        return send_file(file_path, as_attachment=True, download_name="ocel_updated.jsonocel")
     except Exception as e:
         logger.error("Error setting O2O relationship qualifiers: %s", str(e))
         return jsonify({"error": str(e)}), 500
+
 
 
 @main_bp.route('/get_o2o_objects', methods=['GET'])
