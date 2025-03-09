@@ -46,12 +46,18 @@ class DataService:
                 with open(filepath, "r") as file:
                     data = json.load(file)
                 self.df = pd.DataFrame(data)
+
             self.nested_keys()
             self.end_time = time.time()
             self.current_file = filepath
+
+            logger.info(f"✅ DEBUG: Caricamento riuscito per {filepath}.")
+            logger.info(f"📊 DEBUG: Anteprima DataFrame:\n{self.df.head()}")
             return self.df
+
         except Exception as e:
             self.error = str(e)
+            logger.error(f"❌ ERRORE: Caricamento di {filepath} fallito - {e}")
             return None
 
     def get_preview_data(self):
@@ -65,7 +71,14 @@ class DataService:
         }
 
     def normalize_data(self, indexes_to_normalize: list):
-        if self.df is None or self.df.empty or not self.nested_columns:
+        if self.df is None or self.df.empty:
+            logger.error("❌ DEBUG: DataFrame vuoto o non valido.")
+            return None
+
+        if not self.nested_columns:
+            logger.error(
+                "⚠️ DEBUG: Nessuna colonna nidificata trovata nel DataFrame.")
+            logger.error(f"Colonne disponibili: {self.df.columns.tolist()}")
             return None
 
         columns_to_normalize = [self.nested_columns[i]
@@ -73,13 +86,18 @@ class DataService:
         meta_fields = self.not_nested_columns
 
         if not columns_to_normalize:
+            logger.error("⚠️ DEBUG: Nessuna colonna valida da normalizzare.")
             return None
+
+        logger.info(
+            f"🔄 DEBUG: Normalizzazione in corso per le colonne: {columns_to_normalize}")
 
         normalized_dfs = []
 
         for col in columns_to_normalize:
             if col in self.df.columns:
                 try:
+                    logger.info(f"📊 DEBUG: Normalizzando colonna {col}...")
                     normalized_df = pd.json_normalize(
                         self.df.to_dict(orient='records'),
                         record_path=col,
@@ -95,20 +113,28 @@ class DataService:
                             normalized_df.index.astype(str)
 
                     normalized_dfs.append(normalized_df)
+                    logger.info(
+                        f"✅ DEBUG: Colonna {col} normalizzata con {len(normalized_df)} righe.")
+
                 except Exception as e:
-                    logging.error(
-                        f"Errore durante la normalizzazione della colonna {col}: {str(e)}")
+                    logger.error(
+                        f"❌ ERRORE durante la normalizzazione della colonna {col}: {str(e)}")
+
             else:
-                logging.info(f"Colonna {col} non trovata nel DataFrame.")
+                logger.warning(
+                    f"⚠️ DEBUG: Colonna {col} non trovata nel DataFrame.")
 
         if not normalized_dfs:
+            logger.error(
+                "❌ DEBUG: Nessuna colonna è stata normalizzata, restituisco None.")
             return None
 
         self.df_normalized = pd.concat(normalized_dfs, ignore_index=True)
-        self.df_sie_normalized = self.df_normalized.memory_usage(
+        self.df_size_normalized = self.df_normalized.memory_usage(
             deep=True).sum() / 1024
         logger.info(
-            f"Head of normalized DataFrame:\n{self.df_normalized.columns.to_list}")
+            f"✅ DEBUG: DataFrame normalizzato con {len(self.df_normalized)} righe e colonne: {self.df_normalized.columns.tolist()}")
+        return self.df_normalized
 
     def set_ocel_parameters(self, activity, timestamp, object_types, events_attrs, object_attrs):
         logger.info(f"📌 set_ocel_parameters called with: "
@@ -132,8 +158,9 @@ class DataService:
             raise ValueError(
                 f"Timestamp column '{timestamp}' not found in DataFrame.")
 
-        logger.info(
-            f"🔹 Available columns in df_normalized: {self.df_normalized.columns.tolist()}")
+        logger.info(f"🔍 DEBUG: Object types passati a OCEL: {object_types}")
+        logger.info(f"🔍 DEBUG: Colonne disponibili nel DataFrame normalizzato: {self.df_normalized.columns.tolist()}")
+
 
         try:
             self.ocel = pm4py.convert.convert_log_to_ocel(
