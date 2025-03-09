@@ -1,29 +1,87 @@
-2025-03-09 18:09:17,797,INFO,validation/input_data/pancacke100txs.json,Load DataFrame,PASS,0.0328,OK
-2025-03-09 18:09:17,830,INFO,validation/input_data/pancacke100txs.json,Normalize Data,PASS,0.0297,OK
-2025-03-09 18:09:17,845,INFO,Default Mapping,Load DataFrame,PASS,0.0115,OK
-2025-03-09 18:09:17,850,INFO,Default Mapping,Normalize Data,PASS,0.0055,OK
-2025-03-09 18:09:17,981,INFO,Default Mapping,Set OCEL Parameters,PASS,0.1304,OK
-2025-03-09 18:09:18,003,INFO,Minimal Mapping,Load DataFrame,PASS,0.0192,OK
-2025-03-09 18:09:18,012,INFO,Minimal Mapping,Normalize Data,PASS,0.0092,OK
-2025-03-09 18:09:18,226,INFO,Minimal Mapping,Set OCEL Parameters,PASS,0.2126,OK
-2025-03-09 18:09:18,244,INFO,Extended Mapping,Load DataFrame,PASS,0.0150,OK
-2025-03-09 18:09:18,256,INFO,Extended Mapping,Normalize Data,PASS,0.0112,OK
-2025-03-09 18:09:18,374,INFO,Extended Mapping,Set OCEL Parameters,PASS,0.1178,OK
-2025-03-09 18:09:18,378,INFO,⚙️ DEBUG: Test con configurazione Default Mapping per il file validation/input_data\pancacke100txs.json
-2025-03-09 18:09:18,398,INFO,validation/input_data\pancacke100txs.json,Default Mapping,Load DataFrame,PASS,0.0200,256.84,90.80,0.00,OK
-2025-03-09 18:09:18,409,INFO,validation/input_data\pancacke100txs.json,Default Mapping,Normalize Data,PASS,0.0115,256.84,237.04,0.00,OK
-2025-03-09 18:09:18,561,INFO,validation/input_data\pancacke100txs.json,Default Mapping,Set OCEL Parameters,PASS,0.1523,256.84,237.04,101.47,OK
-2025-03-09 18:09:18,607,INFO,validation/input_data\pancacke100txs.json,Default Mapping,Set E2O Relationships,PASS,0.0461,256.84,237.04,101.47,OK
-2025-03-09 18:09:18,656,INFO,validation/input_data\pancacke100txs.json,Default Mapping,Set O2O Relationships,PASS,0.0488,256.84,237.04,0.00,OK
-2025-03-09 18:09:18,656,INFO,⚙️ DEBUG: Test con configurazione Minimal Mapping per il file validation/input_data\pancacke100txs.json
-2025-03-09 18:09:18,672,INFO,validation/input_data\pancacke100txs.json,Minimal Mapping,Load DataFrame,PASS,0.0163,256.84,90.80,0.00,OK
-2025-03-09 18:09:18,681,INFO,validation/input_data\pancacke100txs.json,Minimal Mapping,Normalize Data,PASS,0.0075,256.84,237.04,0.00,OK
-2025-03-09 18:09:18,752,INFO,validation/input_data\pancacke100txs.json,Minimal Mapping,Set OCEL Parameters,PASS,0.0707,256.84,237.04,87.63,OK
-2025-03-09 18:09:18,789,INFO,validation/input_data\pancacke100txs.json,Minimal Mapping,Set E2O Relationships,PASS,0.0371,256.84,237.04,87.63,OK
-2025-03-09 18:09:18,848,INFO,validation/input_data\pancacke100txs.json,Minimal Mapping,Set O2O Relationships,PASS,0.0590,256.84,237.04,0.00,OK
-2025-03-09 18:09:18,848,INFO,⚙️ DEBUG: Test con configurazione Extended Mapping per il file validation/input_data\pancacke100txs.json
-2025-03-09 18:09:18,893,INFO,validation/input_data\pancacke100txs.json,Extended Mapping,Load DataFrame,PASS,0.0306,256.84,90.80,0.00,OK
-2025-03-09 18:09:18,912,INFO,validation/input_data\pancacke100txs.json,Extended Mapping,Normalize Data,PASS,0.0190,256.84,237.04,0.00,OK
-2025-03-09 18:09:18,992,INFO,validation/input_data\pancacke100txs.json,Extended Mapping,Set OCEL Parameters,PASS,0.0804,256.84,237.04,101.47,OK
-2025-03-09 18:09:19,028,INFO,validation/input_data\pancacke100txs.json,Extended Mapping,Set E2O Relationships,PASS,0.0356,256.84,237.04,101.47,OK
-2025-03-09 18:09:19,053,INFO,validation/input_data\pancacke100txs.json,Extended Mapping,Set O2O Relationships,PASS,0.0241,256.84,237.04,0.00,OK
+2025-03-09 18:33:40,115,INFO,validation/input_data/pancacke100txs.json,Load DataFrame,PASS,0.0225,OK
+2025-03-09 18:33:40,147,INFO,validation/input_data/pancacke100txs.json,Normalize Data,PASS,0.0292,OK
+2025-03-09 18:33:40,161,INFO,Default Mapping,Load DataFrame,PASS,0.0111,OK
+2025-03-09 18:33:40,170,INFO,Default Mapping,Normalize Data,PASS,0.0081,OK
+2025-03-09 18:33:40,265,INFO,Default Mapping,Set OCEL Parameters,PASS,0.0953,OK
+2025-03-09 18:33:40,281,INFO,Minimal Mapping,Load DataFrame,PASS,0.0132,OK
+2025-03-09 18:33:40,290,INFO,Minimal Mapping,Normalize Data,PASS,0.0095,OK
+2025-03-09 18:33:40,384,INFO,Minimal Mapping,Set OCEL Parameters,PASS,0.0942,OK
+2025-03-09 18:33:40,398,INFO,Extended Mapping,Load DataFrame,PASS,0.0116,OK
+2025-03-09 18:33:40,406,INFO,Extended Mapping,Normalize Data,PASS,0.0080,OK
+2025-03-09 18:33:40,485,INFO,Extended Mapping,Set OCEL Parameters,PASS,0.0789,OK
+2025-03-09 18:33:40,488,INFO,⚙️ DEBUG: Test con configurazione Default Mapping per il file validation/input_data\pancacke100txs.json
+2025-03-09 18:33:40,502,INFO,validation/input_data\pancacke100txs.json,Default Mapping,Load DataFrame,PASS,0.0145,256.84,90.80,0.00,OK
+2025-03-09 18:33:40,514,INFO,validation/input_data\pancacke100txs.json,Default Mapping,Normalize Data,PASS,0.0111,256.84,237.04,0.00,OK
+2025-03-09 18:33:40,586,INFO,validation/input_data\pancacke100txs.json,Default Mapping,Set OCEL Parameters,PASS,0.0716,256.84,237.04,405.63,OK
+2025-03-09 18:33:40,610,INFO,validation/input_data\pancacke100txs.json,Default Mapping,Set E2O Relationships,PASS,0.0239,256.84,237.04,0.39,OK
+2025-03-09 18:33:40,635,INFO,validation/input_data\pancacke100txs.json,Default Mapping,Set O2O Relationships,PASS,0.0248,256.84,237.04,0.39,OK
+2025-03-09 18:33:40,635,INFO,⚙️ DEBUG: Test con configurazione Minimal Mapping per il file validation/input_data\pancacke100txs.json
+2025-03-09 18:33:40,646,INFO,validation/input_data\pancacke100txs.json,Minimal Mapping,Load DataFrame,PASS,0.0102,256.84,90.80,0.00,OK
+2025-03-09 18:33:40,651,INFO,validation/input_data\pancacke100txs.json,Minimal Mapping,Normalize Data,PASS,0.0051,256.84,237.04,0.00,OK
+2025-03-09 18:33:40,711,INFO,validation/input_data\pancacke100txs.json,Minimal Mapping,Set OCEL Parameters,PASS,0.0600,256.84,237.04,219.46,OK
+2025-03-09 18:33:40,741,INFO,validation/input_data\pancacke100txs.json,Minimal Mapping,Set E2O Relationships,PASS,0.0305,256.84,237.04,0.39,OK
+2025-03-09 18:33:40,762,INFO,validation/input_data\pancacke100txs.json,Minimal Mapping,Set O2O Relationships,PASS,0.0204,256.84,237.04,0.39,OK
+2025-03-09 18:33:40,762,INFO,⚙️ DEBUG: Test con configurazione Extended Mapping per il file validation/input_data\pancacke100txs.json
+2025-03-09 18:33:40,772,INFO,validation/input_data\pancacke100txs.json,Extended Mapping,Load DataFrame,PASS,0.0105,256.84,90.80,0.00,OK
+2025-03-09 18:33:40,791,INFO,validation/input_data\pancacke100txs.json,Extended Mapping,Normalize Data,PASS,0.0157,256.84,237.04,0.00,OK
+2025-03-09 18:33:40,883,INFO,validation/input_data\pancacke100txs.json,Extended Mapping,Set OCEL Parameters,PASS,0.0916,256.84,237.04,413.69,OK
+2025-03-09 18:33:40,906,INFO,validation/input_data\pancacke100txs.json,Extended Mapping,Set E2O Relationships,PASS,0.0234,256.84,237.04,0.39,OK
+2025-03-09 18:33:40,934,INFO,validation/input_data\pancacke100txs.json,Extended Mapping,Set O2O Relationships,PASS,0.0263,256.84,237.04,0.39,OK
+2025-03-09 18:40:13,276,INFO,validation/input_data/pancacke100txs.json,Load DataFrame,PASS,0.0154,OK
+2025-03-09 18:40:13,303,INFO,validation/input_data/pancacke100txs.json,Normalize Data,PASS,0.0252,OK
+2025-03-09 18:40:13,316,INFO,Default Mapping,Load DataFrame,PASS,0.0123,OK
+2025-03-09 18:40:13,321,INFO,Default Mapping,Normalize Data,PASS,0.0050,OK
+2025-03-09 18:40:13,385,INFO,Default Mapping,Set OCEL Parameters,PASS,0.0638,OK
+2025-03-09 18:40:13,396,INFO,Minimal Mapping,Load DataFrame,PASS,0.0091,OK
+2025-03-09 18:40:13,401,INFO,Minimal Mapping,Normalize Data,PASS,0.0051,OK
+2025-03-09 18:40:13,491,INFO,Minimal Mapping,Set OCEL Parameters,PASS,0.0884,OK
+2025-03-09 18:40:13,507,INFO,Extended Mapping,Load DataFrame,PASS,0.0135,OK
+2025-03-09 18:40:13,516,INFO,Extended Mapping,Normalize Data,PASS,0.0075,OK
+2025-03-09 18:40:13,588,INFO,Extended Mapping,Set OCEL Parameters,PASS,0.0725,OK
+2025-03-09 18:40:13,590,INFO,⚙️ DEBUG: Test con configurazione Default Mapping per il file validation/input_data\pancacke100txs.json
+2025-03-09 18:40:13,601,INFO,validation/input_data\pancacke100txs.json,Default Mapping,Load DataFrame,PASS,0.0104,256.84,90.80,0.00,None,OK
+2025-03-09 18:40:13,603,INFO,validation/input_data\pancacke100txs.json,Default Mapping,Normalize Data,PASS,0.0026,256.84,237.04,0.00,None,OK
+2025-03-09 18:40:13,684,INFO,validation/input_data\pancacke100txs.json,Default Mapping,Set OCEL Parameters,PASS,0.0808,256.84,237.04,405.63,e2e: 0.13 KB; events: 101.47 KB; o2o: 0.13 KB; object_changes: 0.13 KB; objects: 16.12 KB; relations: 287.65 KB,OK
+2025-03-09 18:40:13,708,INFO,validation/input_data\pancacke100txs.json,Default Mapping,Set E2O Relationships,PASS,0.0239,256.84,237.04,0.39,e2e: 0.13 KB; events: 0.0 KB; o2o: 0.13 KB; object_changes: 0.13 KB; objects: 0.0 KB; relations: 0.0 KB,OK
+2025-03-09 18:40:13,732,INFO,validation/input_data\pancacke100txs.json,Default Mapping,Set O2O Relationships,PASS,0.0237,256.84,237.04,0.39,e2e: 0.13 KB; events: 0.0 KB; o2o: 0.13 KB; object_changes: 0.13 KB; objects: 0.0 KB; relations: 0.0 KB,OK
+2025-03-09 18:40:13,732,INFO,⚙️ DEBUG: Test con configurazione Minimal Mapping per il file validation/input_data\pancacke100txs.json
+2025-03-09 18:40:13,743,INFO,validation/input_data\pancacke100txs.json,Minimal Mapping,Load DataFrame,PASS,0.0110,256.84,90.80,0.00,None,OK
+2025-03-09 18:40:13,749,INFO,validation/input_data\pancacke100txs.json,Minimal Mapping,Normalize Data,PASS,0.0054,256.84,237.04,0.00,None,OK
+2025-03-09 18:40:13,799,INFO,validation/input_data\pancacke100txs.json,Minimal Mapping,Set OCEL Parameters,PASS,0.0499,256.84,237.04,219.46,e2e: 0.13 KB; events: 87.63 KB; o2o: 0.13 KB; object_changes: 0.13 KB; objects: 0.39 KB; relations: 131.05 KB,OK
+2025-03-09 18:40:13,821,INFO,validation/input_data\pancacke100txs.json,Minimal Mapping,Set E2O Relationships,PASS,0.0220,256.84,237.04,0.39,e2e: 0.13 KB; events: 0.0 KB; o2o: 0.13 KB; object_changes: 0.13 KB; objects: 0.0 KB; relations: 0.0 KB,OK
+2025-03-09 18:40:13,841,INFO,validation/input_data\pancacke100txs.json,Minimal Mapping,Set O2O Relationships,PASS,0.0206,256.84,237.04,0.39,e2e: 0.13 KB; events: 0.0 KB; o2o: 0.13 KB; object_changes: 0.13 KB; objects: 0.0 KB; relations: 0.0 KB,OK
+2025-03-09 18:40:13,841,INFO,⚙️ DEBUG: Test con configurazione Extended Mapping per il file validation/input_data\pancacke100txs.json
+2025-03-09 18:40:13,851,INFO,validation/input_data\pancacke100txs.json,Extended Mapping,Load DataFrame,PASS,0.0101,256.84,90.80,0.00,None,OK
+2025-03-09 18:40:13,855,INFO,validation/input_data\pancacke100txs.json,Extended Mapping,Normalize Data,PASS,0.0038,256.84,237.04,0.00,None,OK
+2025-03-09 18:40:13,903,INFO,validation/input_data\pancacke100txs.json,Extended Mapping,Set OCEL Parameters,PASS,0.0474,256.84,237.04,413.69,e2e: 0.13 KB; events: 101.47 KB; o2o: 0.13 KB; object_changes: 0.13 KB; objects: 24.17 KB; relations: 287.65 KB,OK
+2025-03-09 18:40:13,933,INFO,validation/input_data\pancacke100txs.json,Extended Mapping,Set E2O Relationships,PASS,0.0299,256.84,237.04,0.39,e2e: 0.13 KB; events: 0.0 KB; o2o: 0.13 KB; object_changes: 0.13 KB; objects: 0.0 KB; relations: 0.0 KB,OK
+2025-03-09 18:40:13,954,INFO,validation/input_data\pancacke100txs.json,Extended Mapping,Set O2O Relationships,PASS,0.0205,256.84,237.04,0.39,e2e: 0.13 KB; events: 0.0 KB; o2o: 0.13 KB; object_changes: 0.13 KB; objects: 0.0 KB; relations: 0.0 KB,OK
+2025-03-09 18:44:30,113,INFO,validation/input_data/pancacke100txs.json,Load DataFrame,PASS,0.0219,OK
+2025-03-09 18:44:30,141,INFO,validation/input_data/pancacke100txs.json,Normalize Data,PASS,0.0256,OK
+2025-03-09 18:44:30,155,INFO,Default Mapping,Load DataFrame,PASS,0.0102,OK
+2025-03-09 18:44:30,162,INFO,Default Mapping,Normalize Data,PASS,0.0072,OK
+2025-03-09 18:44:30,238,INFO,Default Mapping,Set OCEL Parameters,PASS,0.0751,OK
+2025-03-09 18:44:30,252,INFO,Minimal Mapping,Load DataFrame,PASS,0.0109,OK
+2025-03-09 18:44:30,258,INFO,Minimal Mapping,Normalize Data,PASS,0.0068,OK
+2025-03-09 18:44:30,336,INFO,Minimal Mapping,Set OCEL Parameters,PASS,0.0780,OK
+2025-03-09 18:44:30,350,INFO,Extended Mapping,Load DataFrame,PASS,0.0119,OK
+2025-03-09 18:44:30,359,INFO,Extended Mapping,Normalize Data,PASS,0.0080,OK
+2025-03-09 18:44:30,425,INFO,Extended Mapping,Set OCEL Parameters,PASS,0.0669,OK
+2025-03-09 18:44:30,427,INFO,⚙️ DEBUG: Test con configurazione Default Mapping per il file validation/input_data\pancacke100txs.json
+2025-03-09 18:44:30,440,INFO,validation/input_data\pancacke100txs.json,Default Mapping,Load DataFrame,PASS,0.0113,256.84,90.80,0.00,None,OK
+2025-03-09 18:44:30,448,INFO,validation/input_data\pancacke100txs.json,Default Mapping,Normalize Data,PASS,0.0074,256.84,237.04,0.00,None,OK
+2025-03-09 18:44:30,511,INFO,validation/input_data\pancacke100txs.json,Default Mapping,Set OCEL Parameters,PASS,0.0635,256.84,237.04,405.63,e2e: 0.13 KB; events: 101.47 KB; o2o: 0.13 KB; object_changes: 0.13 KB; objects: 16.12 KB; relations: 287.65 KB,OK
+2025-03-09 18:44:30,560,INFO,validation/input_data\pancacke100txs.json,Default Mapping,Set E2O Relationships,PASS,0.0495,256.84,237.04,405.63,e2e: 0.13 KB; events: 101.47 KB; o2o: 0.13 KB; object_changes: 0.13 KB; objects: 16.12 KB; relations: 287.65 KB,OK
+2025-03-09 18:44:30,611,INFO,validation/input_data\pancacke100txs.json,Default Mapping,Set O2O Relationships,PASS,0.0510,256.84,237.04,405.63,e2e: 0.13 KB; events: 101.47 KB; o2o: 0.13 KB; object_changes: 0.13 KB; objects: 16.12 KB; relations: 287.65 KB,OK
+2025-03-09 18:44:30,611,INFO,⚙️ DEBUG: Test con configurazione Minimal Mapping per il file validation/input_data\pancacke100txs.json
+2025-03-09 18:44:30,625,INFO,validation/input_data\pancacke100txs.json,Minimal Mapping,Load DataFrame,PASS,0.0130,256.84,90.80,0.00,None,OK
+2025-03-09 18:44:30,632,INFO,validation/input_data\pancacke100txs.json,Minimal Mapping,Normalize Data,PASS,0.0070,256.84,237.04,0.00,None,OK
+2025-03-09 18:44:30,695,INFO,validation/input_data\pancacke100txs.json,Minimal Mapping,Set OCEL Parameters,PASS,0.0638,256.84,237.04,219.46,e2e: 0.13 KB; events: 87.63 KB; o2o: 0.13 KB; object_changes: 0.13 KB; objects: 0.39 KB; relations: 131.05 KB,OK
+2025-03-09 18:44:30,737,INFO,validation/input_data\pancacke100txs.json,Minimal Mapping,Set E2O Relationships,PASS,0.0417,256.84,237.04,219.46,e2e: 0.13 KB; events: 87.63 KB; o2o: 0.13 KB; object_changes: 0.13 KB; objects: 0.39 KB; relations: 131.05 KB,OK
+2025-03-09 18:44:30,779,INFO,validation/input_data\pancacke100txs.json,Minimal Mapping,Set O2O Relationships,PASS,0.0420,256.84,237.04,219.46,e2e: 0.13 KB; events: 87.63 KB; o2o: 0.13 KB; object_changes: 0.13 KB; objects: 0.39 KB; relations: 131.05 KB,OK
+2025-03-09 18:44:30,779,INFO,⚙️ DEBUG: Test con configurazione Extended Mapping per il file validation/input_data\pancacke100txs.json
+2025-03-09 18:44:30,790,INFO,validation/input_data\pancacke100txs.json,Extended Mapping,Load DataFrame,PASS,0.0106,256.84,90.80,0.00,None,OK
+2025-03-09 18:44:30,796,INFO,validation/input_data\pancacke100txs.json,Extended Mapping,Normalize Data,PASS,0.0065,256.84,237.04,0.00,None,OK
+2025-03-09 18:44:30,867,INFO,validation/input_data\pancacke100txs.json,Extended Mapping,Set OCEL Parameters,PASS,0.0712,256.84,237.04,413.69,e2e: 0.13 KB; events: 101.47 KB; o2o: 0.13 KB; object_changes: 0.13 KB; objects: 24.17 KB; relations: 287.65 KB,OK
+2025-03-09 18:44:30,912,INFO,validation/input_data\pancacke100txs.json,Extended Mapping,Set E2O Relationships,PASS,0.0445,256.84,237.04,413.69,e2e: 0.13 KB; events: 101.47 KB; o2o: 0.13 KB; object_changes: 0.13 KB; objects: 24.17 KB; relations: 287.65 KB,OK
+2025-03-09 18:44:30,960,INFO,validation/input_data\pancacke100txs.json,Extended Mapping,Set O2O Relationships,PASS,0.0482,256.84,237.04,413.69,e2e: 0.13 KB; events: 101.47 KB; o2o: 0.13 KB; object_changes: 0.13 KB; objects: 24.17 KB; relations: 287.65 KB,OK

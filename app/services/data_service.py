@@ -159,8 +159,8 @@ class DataService:
                 f"Timestamp column '{timestamp}' not found in DataFrame.")
 
         logger.info(f"🔍 DEBUG: Object types passati a OCEL: {object_types}")
-        logger.info(f"🔍 DEBUG: Colonne disponibili nel DataFrame normalizzato: {self.df_normalized.columns.tolist()}")
-
+        logger.info(
+            f"🔍 DEBUG: Colonne disponibili nel DataFrame normalizzato: {self.df_normalized.columns.tolist()}")
 
         try:
             self.ocel = pm4py.convert.convert_log_to_ocel(
@@ -182,22 +182,40 @@ class DataService:
         self.save_file(self.ocel, "ocel_created")
 
     def set_e2o_relationship_qualifiers(self, qualifier_map):
-        converted_map = {}
-        for key, value in qualifier_map.items():
-            converted_key = tuple(key.split("|"))
-            converted_map[converted_key] = value
-        logger.info("OCEL created: %s", self.ocel)
-        logger.info("Qualifier map: %s", converted_map)
+        converted_map = {tuple(k.split("|")): v for k, v in qualifier_map.items()}
+
+        # 🔍 Debug: Controlliamo la dimensione PRIMA
+        logger.info(
+            f"🔍 DEBUG (PRIMA di E2O): OCEL relations size = {self.ocel.relations.memory_usage(deep=True).sum()/1024:.2f} KB")
+
         try:
             self.ocel.relations['ocel:qualifier'] = self.ocel.relations.apply(
                 lambda row: converted_map.get((row['ocel:type'], row['ocel:activity']), row['ocel:qualifier']), axis=1
             )
-            self.ocel.relations = self.ocel.relations[self.ocel.relations['ocel:qualifier'].notnull(
-            )]
-            logger.info("Updated relationship qualifiers.")
+
+            # Controlliamo se ci sono righe che contengono solo NaN
+            num_na = self.ocel.relations['ocel:qualifier'].isna().sum()
+            logger.info(f"⚠️ DEBUG: Righe con NaN in `qualifier`: {num_na}")
+
+            # Evitiamo di eliminare tutto accidentalmente
+            if num_na < len(self.ocel.relations):
+                self.ocel.relations = self.ocel.relations[self.ocel.relations['ocel:qualifier'].notnull(
+                )]
+            else:
+                logger.warning(
+                    "⚠️ ERRORE: Tutte le righe sarebbero eliminate! Skippo il filtraggio.")
+
+            # 🔍 Debug: Controlliamo la dimensione DOPO
+            logger.info(
+                f"🔍 DEBUG (DOPO di E2O): OCEL relations size = {self.ocel.relations.memory_usage(deep=True).sum()/1024:.2f} KB")
+
+            logger.info(
+                "✅ DEBUG: E2O Relationship Qualifiers aggiornati correttamente.")
             self.save_file(self.ocel, "ocel_e2o_qualifiers")
+
         except Exception as e:
-            logger.error("Error setting relationship qualifiers: %s", str(e))
+            logger.error(
+                f"❌ ERRORE in `set_e2o_relationship_qualifiers`: {str(e)}")
             raise e
 
     def o2o_enrichment(self, included_graphs=["object_interaction_graph"]):
