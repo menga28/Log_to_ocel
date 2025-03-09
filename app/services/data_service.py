@@ -220,18 +220,21 @@ class DataService:
 
     def o2o_enrichment(self, included_graphs=["object_interaction_graph"]):
         if self.ocel is None:
-            raise ValueError(
-                "OCEL log has not been created. Please run set_ocel_parameters first.")
+            raise ValueError("OCEL log has not been created. Please run set_ocel_parameters first.")
         try:
             # Enrich the existing OCEL with O2O relations.
-            self.ocel_o2o = pm4py.ocel_o2o_enrichment(
-                self.ocel, included_graphs=included_graphs)
+            self.ocel_o2o = pm4py.ocel_o2o_enrichment(self.ocel, included_graphs=included_graphs)
+
+            # Verifica che l'arricchimento abbia prodotto un risultato valido
+            if self.ocel_o2o is None or "o2o" not in dir(self.ocel_o2o):
+                raise ValueError("O2O enrichment failed: No valid OCEL O2O structure created.")
+
             # Initialize the 'ocel:qualifier' field to None.
             self.ocel_o2o.o2o["ocel:qualifier"] = None
-            logger.info("O2O enrichment completed. OCEL_o2o created.")
+            logger.info("✅ O2O enrichment completed. OCEL_o2o created.")
             self.save_file(self.ocel_o2o, "ocel_o2o")
         except Exception as e:
-            logger.error("Error during O2O enrichment: %s", str(e))
+            logger.error(f"❌ Error during O2O enrichment: {str(e)}")
             raise e
 
     def set_o2o_relationship_qualifiers(self, qualifier_map):
