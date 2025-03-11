@@ -8,3 +8,11 @@ services:
     environment:
       - FLASK_ENV=development
       - FLASK_APP=run.py
+
+  test:
+    build: .
+    command: ["python", "-m", "pytest", "validation/tests/", "-v", "-o", "log_cli_level=DEBUG"]
+    volumes:
+      - .:/app
+    environment:
+      - FLASK_ENV=testing

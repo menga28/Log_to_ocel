@@ -50,7 +50,7 @@ def get_ocel_size_kb(ocel):
     """Restituisce la dimensione totale dell'OCEL sommando la memoria di tutti i suoi DataFrame."""
 
     if ocel is None:
-        return 0.00  # OCEL non esiste, ritorna size 0
+        return 0.00 
 
     df_dict = get_ocel_dataframes(ocel)  # Ottiene tutti i DataFrame
     total_size = sum(df.memory_usage(deep=True).sum(
