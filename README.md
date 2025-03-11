@@ -9,6 +9,7 @@ This project is a Flask web application that converts log data from JSON format 
 - **Dynamic Mapping and Preview:** Configure parameters interactively, including normalization of nested columns and dynamic selection of attributes.
 - **Relationship Qualifier:** Define custom relationship qualifiers for OCEL relations.
 - **Dockerized Deployment:** Easily deploy the entire application using Docker.
+- **Automated Testing:** Run unit and integration tests using `pytest`.
 
 ## Setup & Deployment
 
@@ -54,16 +55,40 @@ The project is containerized using Docker. To build and run the project, ensure 
 4. **Export:**  
    Once mapping is complete, you can export the OCEL2 data in your desired format.
 
+## Running Tests
+
+To ensure the correctness of the application, you can run the automated tests using `pytest`.
+
+1. **Install dependencies (if running locally):**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. **Run tests with verbose output:**
+   ```bash
+   python -m pytest validation/tests/ -v
+   ```
+
+3. **Run tests with debug logs enabled:**
+   ```bash
+   python -m pytest validation/tests/ -v -o log_cli_level=DEBUG
+   ```
+
+These commands execute all test cases inside the `validation/tests/` directory and provide detailed output.
+
 ## Requirements
 
 - Docker & Docker Compose
 - Python 3.8+ (for local development)
 - PM4Py (used for OCEL conversion)
+- `pytest` (for running tests)
 
 ## Project Structure
 
 - **app/**  
   Contains the Flask application code, templates, and static assets.
+- **validation/tests/**  
+  Includes all unit and integration test files.
 - **Dockerfile & docker-compose.yml:**  
   Used for containerizing and deploying the application.
 - **requirements.txt:**  
