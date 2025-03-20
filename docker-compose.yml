@@ -11,8 +11,16 @@ services:
 
   test:
     build: .
-    command: ["python", "-m", "pytest", "validation/tests/", "-v", "-o", "log_cli_level=DEBUG"]
+    command: ["python", "-m", "pytest", "tests/unit/", "-v", "-o", "log_cli_level=DEBUG"]
     volumes:
       - .:/app
     environment:
       - FLASK_ENV=testing
+
+  validation:
+    build: .
+    command: ["python", "validation/run_validation.py"]
+    volumes:
+      - .:/app
+    environment:
+      - FLASK_ENV=validation

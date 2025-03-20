@@ -2,7 +2,7 @@ import pytest
 import time
 import os
 import pandas as pd
-from validation.tests.utils import setup_logger
+from tests.unit.utils import setup_logger
 from app.services.data_service import DataService
 
 logger = setup_logger("test_results", "validation/logs/test_results.csv")
@@ -33,7 +33,7 @@ def log_step(step_name, start_time, file_path, success=True, error_message=None)
     logger.info(log_entry)
 
 
-@pytest.mark.parametrize("file_path", list(set(get_all_files("validation/input_data/"))))
+@pytest.mark.parametrize("file_path", list(set(get_all_files("tests/input_data/"))))
 def test_load_files(data_service, file_path):
     """Test per caricare tutti i file di input (JSON/CSV) e verificarne la validità."""
     start_time = time.time()
@@ -46,7 +46,7 @@ def test_load_files(data_service, file_path):
     log_step("Load DataFrame", start_time, file_path)
 
 
-@pytest.mark.parametrize("file_path", list(set(get_all_files("validation/input_data/"))))
+@pytest.mark.parametrize("file_path", list(set(get_all_files("tests/input_data/"))))
 def test_normalization(data_service, file_path):
     """Test per verificare la normalizzazione delle colonne nidificate nei file JSON."""
     start_time = time.time()

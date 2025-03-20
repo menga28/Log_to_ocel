@@ -1,8 +1,8 @@
 import pytest
 import time
-from validation.tests.utils import setup_logger
+from tests.unit.utils import setup_logger
 from app.services.data_service import DataService
-from validation.tests.config import test_configs, p_activity, p_timestamp
+from tests.unit.config import test_configs, p_activity, p_timestamp
 
 logger = setup_logger("test_results", "validation/logs/test_results.csv")
 
@@ -17,7 +17,7 @@ def log_step(step_name, start_time, config_name, success=True, error_message=Non
     elapsed_time = time.time() - start_time
     status = "PASS" if success else "FAIL"
     message = error_message if error_message else "OK"
-    
+
     log_entry = f"{config_name},{step_name},{status},{elapsed_time:.4f},{message}"
     logger.info(log_entry)
 
@@ -25,7 +25,7 @@ def log_step(step_name, start_time, config_name, success=True, error_message=Non
 @pytest.mark.parametrize("config", test_configs)
 def test_ocel_conversion(data_service, config):
     """Test per la conversione in OCEL con diverse configurazioni."""
-    file_path = "validation/input_data/pancacke100txs.json"
+    file_path = "tests/input_data/pancacke100txs.json"
 
     # 🟢 1. Caricamento del file
     start_time = time.time()
@@ -50,5 +50,6 @@ def test_ocel_conversion(data_service, config):
         assert data_service.ocel is not None, f"❌ OCEL non creato con configurazione: {config['name']}"
         log_step("Set OCEL Parameters", start_time, config["name"])
     except Exception as e:
-        log_step("Set OCEL Parameters", start_time, config["name"], success=False, error_message=str(e))
+        log_step("Set OCEL Parameters", start_time,
+                 config["name"], success=False, error_message=str(e))
         pytest.fail(f"Configurazione '{config['name']}' fallita: {str(e)}")

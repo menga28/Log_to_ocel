@@ -4,8 +4,8 @@ import os
 import pandas as pd
 import random
 import string
-from validation.tests.utils import get_all_files, setup_logger
-from validation.tests.config import test_configs, p_activity, p_timestamp
+from tests.unit.utils import get_all_files, setup_logger
+from tests.unit.config import test_configs, p_activity, p_timestamp
 from app.services.data_service import DataService
 
 # 📌 Configura il logger per salvare i log in un file CSV
@@ -50,7 +50,7 @@ def get_ocel_size_kb(ocel):
     """Restituisce la dimensione totale dell'OCEL sommando la memoria di tutti i suoi DataFrame."""
 
     if ocel is None:
-        return 0.00 
+        return 0.00
 
     df_dict = get_ocel_dataframes(ocel)  # Ottiene tutti i DataFrame
     total_size = sum(df.memory_usage(deep=True).sum(
@@ -124,7 +124,7 @@ def log_step(step_name, start_time, file_path, config_name, file_size_kb, df_siz
     logger.info(log_entry)
 
 
-@pytest.mark.parametrize("file_path", get_all_files("validation/input_data/"))
+@pytest.mark.parametrize("file_path", get_all_files("tests/input_data/"))
 def test_ocel_enrichment(data_service, file_path):
     """Test completo per OCEL enrichment su tutti i file di input, usando tutte le configurazioni una sola volta."""
 
