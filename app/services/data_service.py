@@ -3,6 +3,7 @@ import json
 import time
 import logging
 import pm4py
+import traceback
 
 logging.basicConfig(
     level=logging.INFO,
@@ -35,6 +36,7 @@ class DataService:
             col for col in self.df.columns if self.contains_nested_data(self.df[col])]
         self.not_nested_columns = [
             col for col in self.df.columns if not self.contains_nested_data(self.df[col])]
+        logger.info(f"Colonne nidificate trovate:{self.nested_columns}")
         return self.nested_columns
 
     def load_dataframe(self, filepath):
@@ -71,6 +73,7 @@ class DataService:
         }
 
     def normalize_data(self, indexes_to_normalize: list):
+        self.nested_keys()
         if self.df is None or self.df.empty:
             logger.error("❌ DEBUG: DataFrame vuoto o non valido.")
             return None
@@ -175,7 +178,8 @@ class DataService:
 
         except Exception as e:
             logger.error(f"❌ Error converting log to OCEL: {str(e)}")
-            raise e
+            logger.error(f"🔍 Stack trace completo:\n{traceback.format_exc()}")  # Stampa lo stack trace
+            raise e  # Propaga l'errore
 
         self.ocel_info_extraction()
         self.get_stats()

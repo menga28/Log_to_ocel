@@ -10,23 +10,23 @@ services:
       - FLASK_ENV=development
       - FLASK_APP=run.py
 
-  # test:
-  #   container_name: ocel-test
-  #   build: .
-  #   command:
-  #     [
-  #       "python",
-  #       "-m",
-  #       "pytest",
-  #       "tests/unit/",
-  #       "-v",
-  #       "-o",
-  #       "log_cli_level=DEBUG",
-  #     ]
-  #   volumes:
-  #     - .:/app
-  #   environment:
-  #     - FLASK_ENV=testing
+  test:
+    container_name: ocel-test
+    build: .
+    command:
+      [
+        "python",
+        "-m",
+        "pytest",
+        "tests/unit/",
+        "-v",
+        "-o",
+        "log_cli_level=DEBUG",
+      ]
+    volumes:
+      - .:/app
+    environment:
+      - FLASK_ENV=testing
 
   validation:
     container_name: ocel-validation
@@ -40,7 +40,7 @@ services:
         "--object_pct",
         "20",
         "--object_attr_pct",
-        "40",
+        "10",
       ]
     volumes:
       - .:/app

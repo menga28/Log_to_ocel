@@ -134,6 +134,7 @@ def get_normalizable_columns(df):
 
 
 # 📌 Funzione principale per eseguire la validazione
+
 def run_validation(event_attr_pct, object_pct, object_attr_pct):
     results = []
 
@@ -156,25 +157,34 @@ def run_validation(event_attr_pct, object_pct, object_attr_pct):
 
         if normalizable_columns:
             # Converti i nomi delle colonne in indici numerici
-            normalizable_indexes = [data_service.df.columns.get_loc(col) for col in normalizable_columns]
-            logger.info(f"🔄 Normalizzazione in corso per colonne: {normalizable_indexes}")
+            normalizable_indexes = [data_service.nested_columns.index(
+                col) for col in normalizable_columns if col in data_service.nested_columns]
+            logger.info(
+                f"🛠 DEBUG: Indici per la normalizzazione: {normalizable_indexes}")
+            logger.info(
+                f"🛠 DEBUG: Colonne effettive del DataFrame: {data_service.df.columns.tolist()}")
             start_time = time.time()
-            data_service.normalize_data(normalizable_indexes)  # Passa gli indici invece dei nomi
+            # Passa gli indici invece dei nomi
+            data_service.normalize_data(normalizable_indexes)
             df_size_kb_norm = get_dataframe_size_kb(data_service.df_normalized)
             norm_time = round(time.time() - start_time, 4)
 
-            logger.info(f"🔄 Normalizzazione completata per colonne: {normalizable_columns} - Tempo: {norm_time}s")
+            logger.info(
+                f"🔄 Normalizzazione completata per colonne: {normalizable_columns} - Tempo: {norm_time}s")
         else:
             logger.warning("⚠️ Nessuna colonna normalizzabile trovata.")
 
         # 📌 Aggiorna l'elenco delle colonne normalizzate solo se df_normalized non è None
         if data_service.df_normalized is not None:
             normalized_columns = list(data_service.df_normalized.columns)
-            logger.info(f"📌 Colonne dopo normalizzazione: {normalized_columns}")
+            logger.info(
+                f"📌 Colonne dopo normalizzazione: {normalized_columns}")
+            logger.info(
+                f"📊 DEBUG: Prime 5 righe del DataFrame normalizzato:\n{data_service.df_normalized.head()}")
         else:
-            logger.error("❌ Errore: df_normalized è None dopo la normalizzazione.")
+            logger.error(
+                "❌ Errore: df_normalized è None dopo la normalizzazione.")
             normalized_columns = []
-
 
         # 📌 Numero di colonne per oggetti ed eventi
         num_objects = min(
@@ -187,22 +197,35 @@ def run_validation(event_attr_pct, object_pct, object_attr_pct):
             normalized_columns, num_objects, num_event_attr)
 
         # 📌 Numero di attributi per oggetto (subset delle colonne oggetto)
-        num_object_attr = min(int(
-            (object_attr_pct / 100) * (len(normalized_columns) + 1)), len(normalized_columns))
-        object_attrs = object_types[:num_object_attr]
+        num_object_attr = min(
+            int((object_attr_pct / 100) * len(events_attrs)), len(events_attrs))
+
+        # 📌 Creiamo `object_attrs` selezionando un sottoinsieme di `events_attrs`
+        object_attrs = {
+            obj: [obj] + random.sample(events_attrs,
+                                       num_object_attr) if num_object_attr > 0 else [obj]
+            for obj in object_types
+        }
+
+        logger.info(
+            f"✅ DEBUG: `object_attrs` costruito correttamente:\n{json.dumps(object_attrs, indent=4)}")
 
         logger.info(
             f"🔢 Configurazione calcolata - Oggetti: {object_types}, Eventi: {events_attrs}, Attributi/Oggetto: {object_attrs}")
 
         # 🟢 3. Conversione OCEL
         start_time = time.time()
-        data_service.set_ocel_parameters(
-            activity=p_activity,
-            timestamp=p_timestamp,
-            object_types=object_types,
-            events_attrs=events_attrs,
-            object_attrs=object_attrs
-        )
+        try:
+            data_service.set_ocel_parameters(
+                activity=p_activity,
+                timestamp=p_timestamp,
+                object_types=object_types,
+                events_attrs=events_attrs,
+                object_attrs=object_attrs
+            )
+        except Exception as e:
+            logger.error(f"❌ Errore durante `set_ocel_parameters`: {str(e)}")
+            continue
         ocel_size_kb = get_ocel_size_kb(data_service.ocel)
         ocel_time = round(time.time() - start_time, 4)
         logger.info(
