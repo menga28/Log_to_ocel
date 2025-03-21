@@ -34,13 +34,13 @@ services:
     command:
       [
         "python",
-        "validation/run_validation.py",
-        "--event_attr_pct",
-        "30",
-        "--object_pct",
-        "20",
-        "--object_attr_pct",
-        "10",
+        "validation/batch_run.py",
+        # "--event_attr_pct",
+        # "30",
+        # "--object_pct",
+        # "20",
+        # "--object_attr_pct",
+        # "10",
       ]
     volumes:
       - .:/app

@@ -1,16 +1,170 @@
 [
     {
-        "file": "tests/input_data/Pancake1000.json",
-        "file_size_kb": 2413.45,
-        "num_event_attr": 13,
-        "num_objects": 8,
-        "num_object_attr": 1,
-        "df_size_kb": 795.87,
-        "df_size_kb_norm": 9702.92,
-        "ocel_size_kb": 26562.75,
-        "load_time": 0.0699,
-        "norm_time": 0.256,
-        "ocel_time": 1.527,
-        "e2o_time": 1.3521
+        "input": {
+            "event_attr_pct": 0,
+            "object_pct": 100,
+            "object_attr_pct": 0,
+            "log_pct": 10
+        },
+        "derived": {
+            "file": "tests/input_data/Pancake1000.json",
+            "file_size_kb": 2413.45,
+            "df_size_kb": 78.62,
+            "df_size_kb_norm": 792.87,
+            "num_total_columns": 42,
+            "num_objects": 42,
+            "num_event_attr": 0,
+            "num_object_attr": 0,
+            "ocel_size_kb_created": 2450.38,
+            "ocel_size_kb_e2o": 2565.35,
+            "ocel_size_kb_o2o ": 2565.35
+        },
+        "timings": {
+            "load_time": 0.0507,
+            "norm_time": 0.0643,
+            "ocel_time": 0.2277,
+            "e2o_time": 0.2078,
+            "o2o_time": 1.4901
+        }
+    },
+    {
+        "input": {
+            "event_attr_pct": 0,
+            "object_pct": 100,
+            "object_attr_pct": 0,
+            "log_pct": 50
+        },
+        "derived": {
+            "file": "tests/input_data/Pancake1000.json",
+            "file_size_kb": 2413.45,
+            "df_size_kb": 400.03,
+            "df_size_kb_norm": 5377.93,
+            "num_total_columns": 44,
+            "num_objects": 44,
+            "num_event_attr": 0,
+            "num_object_attr": 0,
+            "ocel_size_kb_created": 15511.43,
+            "ocel_size_kb_e2o": 16268.53,
+            "ocel_size_kb_o2o ": 16268.53
+        },
+        "timings": {
+            "load_time": 0.0433,
+            "norm_time": 0.102,
+            "ocel_time": 1.1479,
+            "e2o_time": 1.1191,
+            "o2o_time": 9.1401
+        }
+    },
+    {
+        "input": {
+            "event_attr_pct": 0,
+            "object_pct": 100,
+            "object_attr_pct": 0,
+            "log_pct": 10
+        },
+        "derived": {
+            "file": "tests/input_data/Pancake1000.json",
+            "file_size_kb": 2413.45,
+            "df_size_kb": 78.62,
+            "df_size_kb_norm": 792.87,
+            "num_total_columns": 42,
+            "num_objects": 42,
+            "num_event_attr": 0,
+            "num_object_attr": 0,
+            "ocel_size_kb_created": 2450.38,
+            "ocel_size_kb_e2o": 2565.35,
+            "ocel_size_kb_o2o ": 2565.35
+        },
+        "timings": {
+            "load_time": 0.04,
+            "norm_time": 0.0285,
+            "ocel_time": 0.2261,
+            "e2o_time": 0.258,
+            "o2o_time": 1.5361
+        }
+    },
+    {
+        "input": {
+            "event_attr_pct": 0,
+            "object_pct": 100,
+            "object_attr_pct": 10,
+            "log_pct": 10
+        },
+        "derived": {
+            "file": "tests/input_data/Pancake1000.json",
+            "file_size_kb": 2413.45,
+            "df_size_kb": 78.62,
+            "df_size_kb_norm": 792.87,
+            "num_total_columns": 42,
+            "num_objects": 42,
+            "num_event_attr": 0,
+            "num_object_attr": 0,
+            "ocel_size_kb_created": 2450.38,
+            "ocel_size_kb_e2o": 2565.35,
+            "ocel_size_kb_o2o ": 2565.35
+        },
+        "timings": {
+            "load_time": 0.0428,
+            "norm_time": 0.0505,
+            "ocel_time": 0.2556,
+            "e2o_time": 0.246,
+            "o2o_time": 1.4352
+        }
+    },
+    {
+        "input": {
+            "event_attr_pct": 0,
+            "object_pct": 100,
+            "object_attr_pct": 10,
+            "log_pct": 50
+        },
+        "derived": {
+            "file": "tests/input_data/Pancake1000.json",
+            "file_size_kb": 2413.45,
+            "df_size_kb": 400.03,
+            "df_size_kb_norm": 5377.93,
+            "num_total_columns": 44,
+            "num_objects": 44,
+            "num_event_attr": 0,
+            "num_object_attr": 0,
+            "ocel_size_kb_created": 15511.43,
+            "ocel_size_kb_e2o": 16268.53,
+            "ocel_size_kb_o2o ": 16268.53
+        },
+        "timings": {
+            "load_time": 0.0406,
+            "norm_time": 0.1386,
+            "ocel_time": 1.2244,
+            "e2o_time": 1.0948,
+            "o2o_time": 9.508
+        }
+    },
+    {
+        "input": {
+            "event_attr_pct": 0,
+            "object_pct": 100,
+            "object_attr_pct": 10,
+            "log_pct": 10
+        },
+        "derived": {
+            "file": "tests/input_data/Pancake1000.json",
+            "file_size_kb": 2413.45,
+            "df_size_kb": 78.62,
+            "df_size_kb_norm": 792.87,
+            "num_total_columns": 42,
+            "num_objects": 42,
+            "num_event_attr": 0,
+            "num_object_attr": 0,
+            "ocel_size_kb_created": 2450.38,
+            "ocel_size_kb_e2o": 2565.35,
+            "ocel_size_kb_o2o ": 2565.35
+        },
+        "timings": {
+            "load_time": 0.0412,
+            "norm_time": 0.0303,
+            "ocel_time": 0.2352,
+            "e2o_time": 0.2498,
+            "o2o_time": 1.452
+        }
     }
 ]

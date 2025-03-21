@@ -34,6 +34,32 @@ os.makedirs("validation", exist_ok=True)
 # 📌 Funzioni di supporto
 
 
+def generate_o2o_mapping(data_service):
+    """Genera dinamicamente la mappatura per le relazioni O2O basandosi sulle combinazioni presenti in OCEL."""
+    if data_service.ocel_o2o is None or "o2o" not in dir(data_service.ocel_o2o):
+        logger.warning(
+            "⚠️ O2O: OCEL O2O non trovato, nessuna mappatura creata.")
+        return {}
+
+    # Prendi tutte le combinazioni uniche di oggetti collegati tra loro
+    unique_pairs = data_service.ocel_o2o.o2o[[
+        'ocel:oid', 'ocel:oid_2']].drop_duplicates()
+
+    if unique_pairs.empty:
+        logger.warning("⚠️ Nessuna relazione O2O trovata!")
+        return {}
+
+    # Crea un mapping con chiavi 'oggetto_1|oggetto_2' e valori stringhe casuali
+    o2o_mapping = {
+        f"{row['ocel:oid']}|{row['ocel:oid_2']}": generate_random_string()
+        for _, row in unique_pairs.iterrows()
+    }
+
+    logger.info(
+        f"🔍 Mappatura O2O generata ({len(o2o_mapping)} relazioni): {o2o_mapping}")
+    return o2o_mapping
+
+
 def get_file_size_kb(file_path):
     return round(os.path.getsize(file_path) / 1024, 2) if os.path.exists(file_path) else 0.00
 
@@ -133,8 +159,24 @@ def get_normalizable_columns(df):
     return normalizable_columns
 
 
-# 📌 Funzione principale per eseguire la validazione
+def append_result(new_result):
+    results_file = "validation/results.json"
+    if os.path.exists(results_file):
+        with open(results_file, "r") as f:
+            try:
+                existing_results = json.load(f)
+            except json.JSONDecodeError:
+                existing_results = []
+    else:
+        existing_results = []
 
+    existing_results.append(new_result)
+
+    with open(results_file, "w") as f:
+        json.dump(existing_results, f, indent=4)
+
+
+# 📌 Funzione principale per eseguire la validazione
 def run_validation(event_attr_pct, object_pct, object_attr_pct, log_pct):
     results = []
 
@@ -209,7 +251,7 @@ def run_validation(event_attr_pct, object_pct, object_attr_pct, log_pct):
     # 📌 Creiamo `object_attrs` selezionando un sottoinsieme di `events_attrs`
     object_attrs = {
         obj: [obj] + random.sample(events_attrs,
-                                    num_object_attr) if num_object_attr > 0 else [obj]
+                                   num_object_attr) if num_object_attr > 0 else [obj]
         for obj in object_types
     }
 
@@ -231,37 +273,76 @@ def run_validation(event_attr_pct, object_pct, object_attr_pct, log_pct):
         )
     except Exception as e:
         logger.error(f"❌ Errore durante `set_ocel_parameters`: {str(e)}")
-    ocel_size_kb = get_ocel_size_kb(data_service.ocel)
+    ocel_size_kb_created = get_ocel_size_kb(data_service.ocel)
     ocel_time = round(time.time() - start_time, 4)
     logger.info(
-        f"🔀 OCEL creato - Dimensione: {ocel_size_kb} KB - Tempo: {ocel_time}s")
+        f"🔀 OCEL creato - Dimensione: {ocel_size_kb_created} KB - Tempo: {ocel_time}s")
 
     # 🟢 4. Creazione delle relazioni E2O
     start_time = time.time()
     e2o_mapping = generate_e2o_mapping(data_service)
     data_service.set_e2o_relationship_qualifiers(e2o_mapping)
+    ocel_size_kb_e2o = get_ocel_size_kb(data_service.ocel)
+
     e2o_time = round(time.time() - start_time, 4)
     logger.info(f"🔗 Relazioni E2O impostate - Tempo: {e2o_time}s")
 
+    # 🟢 5. Creazione delle relazioni O2O
+    start_time = time.time()
+    try:
+        data_service.o2o_enrichment()
+
+        if data_service.ocel_o2o is None:
+            logger.error(
+                "❌ OCEL O2O enrichment non riuscito, `ocel_o2o` è None.")
+            raise RuntimeError("Errore: OCEL O2O non è stato creato.")
+
+        o2o_mapping = generate_o2o_mapping(data_service)
+        if not o2o_mapping:
+            logger.warning(
+                "⚠️ Nessuna relazione O2O trovata, salto il mapping.")
+
+        data_service.set_o2o_relationship_qualifiers(o2o_mapping)
+        ocel_size_kb_o2o = get_ocel_size_kb(data_service.ocel)
+        o2o_time = round(time.time() - start_time, 4)
+        logger.info(f"🔁 Relazioni O2O impostate - Tempo: {o2o_time}s")
+    except Exception as e:
+        logger.error(f"Errore nella creazione delle relazioni O2O: {str(e)}")
+        ocel_size_kb_o2o = 0
+        o2o_time = 0.0
+
     # 📌 Salva il risultato
     results.append({
-        "file": file_path,
-        "file_size_kb": file_size_kb,
-        "num_event_attr": num_event_attr,
-        "num_objects": num_objects,
-        "num_object_attr": num_object_attr,
-        "df_size_kb": df_size_kb,
-        "df_size_kb_norm": df_size_kb_norm,
-        "ocel_size_kb": ocel_size_kb,
-        "load_time": load_time,
-        "norm_time": norm_time,
-        "ocel_time": ocel_time,
-        "e2o_time": e2o_time
+        "input": {
+            "event_attr_pct": event_attr_pct,
+            "object_pct": object_pct,
+            "object_attr_pct": object_attr_pct,
+            "log_pct": log_pct
+        },
+        "derived": {
+            "file": file_path,
+            "file_size_kb": file_size_kb,
+            "df_size_kb": df_size_kb,
+            "df_size_kb_norm": df_size_kb_norm,
+            "num_total_columns": len(normalized_columns),
+            "num_objects": num_objects,
+            "num_event_attr": num_event_attr,
+            "num_object_attr": num_object_attr,
+            "ocel_size_kb_created": ocel_size_kb_created,
+            "ocel_size_kb_e2o": ocel_size_kb_e2o,
+            "ocel_size_kb_o2o ": ocel_size_kb_o2o
+        },
+        "timings": {
+            "load_time": load_time,
+            "norm_time": norm_time,
+            "ocel_time": ocel_time,
+            "e2o_time": e2o_time,
+            "o2o_time": o2o_time
+        }
     })
 
     # 📌 Salva i risultati in JSON
-    with open(RESULTS_FILE, "w") as f:
-        json.dump(results, f, indent=4)
+    append_result(results[0])
 
     logger.info(
         f"✅ Validazione completata! Risultati salvati in {RESULTS_FILE}")
