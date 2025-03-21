@@ -276,6 +276,9 @@ class DataService:
         pass
 
     def save_file(self, obj, file_name: str):
+        if not False:
+            logger.info("⏭️ Salvataggio OCEL disattivato, skip del file.")
+            return
         try:
             logger.info(f"📂 Saving OCEL log to {file_name}.jsonocel")
             pm4py.write.write_ocel2_json(obj, file_name + ".jsonocel")

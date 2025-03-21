@@ -1,10 +1,5 @@
 import sys
 import os
-
-# # 🔥 Forza l'aggiunta di `sys.path` prima di qualsiasi altro import
-# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-# isort:skip
 from app.services.data_service import DataService
 from tests.unit.utils import get_all_files
 import time
@@ -14,7 +9,7 @@ import argparse
 import logging
 import string
 import random
-
+import threading
 
 p_activity = "activity"
 p_timestamp = "timestamp"
@@ -30,6 +25,9 @@ logger = logging.getLogger(__name__)
 # 📌 Directory per i risultati
 RESULTS_FILE = "validation/results.json"
 os.makedirs("validation", exist_ok=True)
+
+# Definisci un lock globale
+file_write_lock = threading.Lock()
 
 # 📌 Funzioni di supporto
 
@@ -53,8 +51,7 @@ def generate_o2o_mapping(data_service):
         for _, row in unique_pairs.iterrows()
     }
 
-    logger.info(
-        f"🔍 Mappatura O2O generata ({len(o2o_mapping)} mapping da {total_relations} relazioni totali)")
+    # LOG_DISABLED: logger.info(f"🔍 Mappatura O2O generata ({len(o2o_mapping)} mapping da {total_relations} relazioni totali)")
     return o2o_mapping, total_relations
 
 
@@ -114,8 +111,7 @@ def generate_e2o_mapping(data_service):
         for _, row in unique_pairs.iterrows()
     }
 
-    logger.info(
-        f"🔍 Mappatura E2O generata ({len(e2o_mapping)} mapping da {total_relations} relazioni totali)")
+    # LOG_DISABLED: logger.info(f"🔍 Mappatura E2O generata ({len(e2o_mapping)} mapping da {total_relations} relazioni totali)")
     return e2o_mapping, total_relations
 
 
@@ -123,60 +119,44 @@ def assign_columns_to_objects_and_events(df_columns, num_objects, num_event_attr
     """
     Assegna le colonne del DataFrame normalizzato agli oggetti e agli eventi, 
     escludendo 'activity' e 'timestamp'.
-
-    :param df_columns: Lista delle colonne del DataFrame normalizzato
-    :param num_objects: Numero di colonne da assegnare agli oggetti
-    :param num_event_attr: Numero di colonne da assegnare agli eventi
-    :return: Tuple (object_types, event_attrs)
     """
-    # Escludi 'activity' e 'timestamp'
     filtered_columns = [
         col for col in df_columns if col not in ["activity", "timestamp"]]
-
-    # Assegna le prime `num_objects` colonne agli oggetti
     object_types = filtered_columns[:num_objects]
-
-    # Assegna le successive `num_event_attr` colonne agli eventi
     event_attrs = filtered_columns[num_objects:num_objects + num_event_attr]
-
     return object_types, event_attrs
 
 
 def get_normalizable_columns(df):
     """
     Restituisce un elenco di colonne normalizzabili nel DataFrame.
-
-    :param df: DataFrame originale
-    :return: Lista delle colonne normalizzabili
     """
     normalizable_columns = []
-
     for col in df.columns:
-        # Verifica se la colonna contiene dati strutturati (es. liste, dizionari)
         if df[col].apply(lambda x: isinstance(x, (list, dict))).any():
             normalizable_columns.append(col)
-    logger.info("Colonne normalizzabili:" + str(normalizable_columns))
+    # LOG_DISABLED: logger.info("Colonne normalizzabili:" + str(normalizable_columns))
     return normalizable_columns
 
 
 def append_result(new_result):
     results_file = "validation/results.json"
-    if os.path.exists(results_file):
-        with open(results_file, "r") as f:
-            try:
-                existing_results = json.load(f)
-            except json.JSONDecodeError:
-                existing_results = []
-    else:
-        existing_results = []
+    with file_write_lock:
+        if os.path.exists(results_file):
+            with open(results_file, "r") as f:
+                try:
+                    existing_results = json.load(f)
+                except json.JSONDecodeError:
+                    existing_results = []
+        else:
+            existing_results = []
 
-    existing_results.append(new_result)
+        existing_results.append(new_result)
 
-    with open(results_file, "w") as f:
-        json.dump(existing_results, f, indent=4)
+        with open(results_file, "w") as f:
+            json.dump(existing_results, f, indent=4)
 
 
-# 📌 Funzione principale per eseguire la validazione
 def run_validation(event_attr_pct, object_pct, object_attr_pct, log_pct):
     results = []
 
@@ -193,73 +173,49 @@ def run_validation(event_attr_pct, object_pct, object_attr_pct, log_pct):
         original_len = len(data_service.df)
         data_service.df = data_service.df.head(
             int((log_pct / 100) * original_len))
-        logger.info(
-            f"✂️ Dataset ridotto al {log_pct}%: da {original_len} a {len(data_service.df)} righe")
+        # LOG_DISABLED: logger.info(f"✂️ Dataset ridotto al {log_pct}%: da {original_len} a {len(data_service.df)} righe")
     df_size_kb = get_dataframe_size_kb(data_service.df)
     load_time = round(time.time() - start_time, 4)
-    logger.info(
-        f"📂 File caricato: {file_path} ({df_size_kb} KB) - Tempo: {load_time}s")
+    # LOG_DISABLED: logger.info(f"📂 File caricato: {file_path} ({df_size_kb} KB) - Tempo: {load_time}s")
 
-    # 🟢 2. Identifica e normalizza tutte le colonne normalizzabili
+    # 🟢 2. Normalizzazione
     normalizable_columns = get_normalizable_columns(data_service.df)
-
     if normalizable_columns:
-        # Converti i nomi delle colonne in indici numerici
         normalizable_indexes = [data_service.nested_columns.index(
             col) for col in normalizable_columns if col in data_service.nested_columns]
-        logger.info(
-            f"🛠 DEBUG: Indici per la normalizzazione: {normalizable_indexes}")
-        logger.info(
-            f"🛠 DEBUG: Colonne effettive del DataFrame: {data_service.df.columns.tolist()}")
+        # LOG_DISABLED: logger.info(f"🛠 DEBUG: Indici per la normalizzazione: {normalizable_indexes}")
+        # LOG_DISABLED: logger.info(f"🛠 DEBUG: Colonne effettive del DataFrame: {data_service.df.columns.tolist()}")
         start_time = time.time()
-        # Passa gli indici invece dei nomi
         data_service.normalize_data(normalizable_indexes)
         df_size_kb_norm = get_dataframe_size_kb(data_service.df_normalized)
         norm_time = round(time.time() - start_time, 4)
-
-        logger.info(
-            f"🔄 Normalizzazione completata per colonne: {normalizable_columns} - Tempo: {norm_time}s")
+        # LOG_DISABLED: logger.info(f"🔄 Normalizzazione completata per colonne: {normalizable_columns} - Tempo: {norm_time}s")
     else:
         logger.warning("⚠️ Nessuna colonna normalizzabile trovata.")
 
-    # 📌 Aggiorna l'elenco delle colonne normalizzate solo se df_normalized non è None
     if data_service.df_normalized is not None:
         normalized_columns = list(data_service.df_normalized.columns)
-        logger.info(
-            f"📌 Colonne dopo normalizzazione: {normalized_columns}")
-        logger.info(
-            f"📊 DEBUG: Prime 5 righe del DataFrame normalizzato:\n{data_service.df_normalized.head()}")
+        # LOG_DISABLED: logger.info(f"📌 Colonne dopo normalizzazione: {normalized_columns}")
+        # LOG_DISABLED: logger.info(f"📊 DEBUG: Prime 5 righe del DataFrame normalizzato:\n{data_service.df_normalized.head()}")
     else:
-        logger.error(
-            "❌ Errore: df_normalized è None dopo la normalizzazione.")
+        logger.error("❌ Errore: df_normalized è None dopo la normalizzazione.")
         normalized_columns = []
 
-    # 📌 Numero di colonne per oggetti ed eventi
     num_objects = min(
         int((object_pct / 100) * len(normalized_columns)), len(normalized_columns))
-    num_event_attr = min(int(
-        (event_attr_pct / 100) * len(normalized_columns)), len(normalized_columns) - num_objects)
-
-    # 📌 Chiamata alla funzione per assegnare oggetti ed eventi
+    num_event_attr = min(int((event_attr_pct / 100) *
+                         len(normalized_columns)), len(normalized_columns) - num_objects)
     object_types, events_attrs = assign_columns_to_objects_and_events(
         normalized_columns, num_objects, num_event_attr)
-
-    # 📌 Numero di attributi per oggetto (subset delle colonne oggetto)
-    num_object_attr = min(
-        int((object_attr_pct / 100) * len(events_attrs)), len(events_attrs))
-
-    # 📌 Creiamo `object_attrs` selezionando un sottoinsieme di `events_attrs`
+    num_object_attr = min(int((object_attr_pct / 100) *
+                          len(events_attrs)), len(events_attrs))
     object_attrs = {
         obj: [obj] + random.sample(events_attrs,
                                    num_object_attr) if num_object_attr > 0 else [obj]
         for obj in object_types
     }
-
-    logger.info(
-        f"✅ DEBUG: `object_attrs` costruito correttamente:\n{json.dumps(object_attrs, indent=4)}")
-
-    logger.info(
-        f"🔢 Configurazione calcolata - Oggetti: {object_types}, Eventi: {events_attrs}, Attributi/Oggetto: {object_attrs}")
+    # LOG_DISABLED: logger.info(f"✅ DEBUG: `object_attrs` costruito correttamente:\n{json.dumps(object_attrs, indent=4)}")
+    # LOG_DISABLED: logger.info(f"🔢 Configurazione calcolata - Oggetti: {object_types}, Eventi: {events_attrs}, Attributi/Oggetto: {object_attrs}")
 
     # 🟢 3. Conversione OCEL
     start_time = time.time()
@@ -275,43 +231,37 @@ def run_validation(event_attr_pct, object_pct, object_attr_pct, log_pct):
         logger.error(f"❌ Errore durante `set_ocel_parameters`: {str(e)}")
     ocel_size_kb_created = get_ocel_size_kb(data_service.ocel)
     ocel_time = round(time.time() - start_time, 4)
-    logger.info(
-        f"🔀 OCEL creato - Dimensione: {ocel_size_kb_created} KB - Tempo: {ocel_time}s")
+    # LOG_DISABLED: logger.info(f"🔀 OCEL creato - Dimensione: {ocel_size_kb_created} KB - Tempo: {ocel_time}s")
 
-    # 🟢 4. Creazione delle relazioni E2O
+    # 🟢 4. Relazioni E2O
     start_time = time.time()
     e2o_mapping, num_e2o_relations = generate_e2o_mapping(data_service)
     data_service.set_e2o_relationship_qualifiers(e2o_mapping)
     ocel_size_kb_e2o = get_ocel_size_kb(data_service.ocel)
-
     e2o_time = round(time.time() - start_time, 4)
-    logger.info(f"🔗 Relazioni E2O impostate - Tempo: {e2o_time}s")
+    # LOG_DISABLED: logger.info(f"🔗 Relazioni E2O impostate - Tempo: {e2o_time}s")
 
-    # 🟢 5. Creazione delle relazioni O2O
+    # 🟢 5. Relazioni O2O
     start_time = time.time()
     try:
         data_service.o2o_enrichment()
-
         if data_service.ocel_o2o is None:
             logger.error(
                 "❌ OCEL O2O enrichment non riuscito, `ocel_o2o` è None.")
             raise RuntimeError("Errore: OCEL O2O non è stato creato.")
-
         o2o_mapping, num_o2o_relations = generate_o2o_mapping(data_service)
         if not o2o_mapping:
             logger.warning(
                 "⚠️ Nessuna relazione O2O trovata, salto il mapping.")
-
         data_service.set_o2o_relationship_qualifiers(o2o_mapping)
         ocel_size_kb_o2o = get_ocel_size_kb(data_service.ocel)
         o2o_time = round(time.time() - start_time, 4)
-        logger.info(f"🔁 Relazioni O2O impostate - Tempo: {o2o_time}s")
+        # LOG_DISABLED: logger.info(f"🔁 Relazioni O2O impostate - Tempo: {o2o_time}s")
     except Exception as e:
         logger.error(f"Errore nella creazione delle relazioni O2O: {str(e)}")
         ocel_size_kb_o2o = 0
         o2o_time = 0.0
 
-    # 📌 Salva il risultato
     results.append({
         "input": {
             "event_attr_pct": event_attr_pct,
@@ -343,14 +293,11 @@ def run_validation(event_attr_pct, object_pct, object_attr_pct, log_pct):
         }
     })
 
-    # 📌 Salva i risultati in JSON
     append_result(results[0])
-
     logger.info(
         f"✅ Validazione completata! Risultati salvati in {RESULTS_FILE}")
 
 
-# 📌 Esegui la validazione
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Esegui la validazione con parametri personalizzati")
@@ -364,7 +311,6 @@ if __name__ == "__main__":
                         help="Percentuale del log da includere nel DataFrame (0-100)")
     args = parser.parse_args()
 
-    # 📌 Controllo dei limiti
     if args.event_attr_pct > 100 or args.object_pct > 100 or args.object_attr_pct > 100:
         logger.error("❌ Le percentuali non possono superare il 100%")
         exit(1)
