@@ -14,7 +14,6 @@ import argparse
 import logging
 import string
 import random
-import psutil
 
 
 p_activity = "activity"
@@ -175,25 +174,6 @@ def append_result(new_result):
 
     with open(results_file, "w") as f:
         json.dump(existing_results, f, indent=4)
-
-
-def get_resource_snapshot():
-    process = psutil.Process(os.getpid())
-    cpu_times = process.cpu_times()
-    mem_info = process.memory_info()
-    return {
-        "cpu_user": cpu_times.user,
-        "cpu_system": cpu_times.system,
-        "memory_rss_kb": mem_info.rss / 1024  # Resident Set Size (in KB)
-    }
-
-def resource_delta(before, after):
-    return {
-        "cpu_user": round(after["cpu_user"] - before["cpu_user"], 4),
-        "cpu_system": round(after["cpu_system"] - before["cpu_system"], 4),
-        "memory_used_kb": round(after["memory_rss_kb"] - before["memory_rss_kb"], 2)
-    }
-
 
 
 # 📌 Funzione principale per eseguire la validazione
