@@ -16,7 +16,7 @@ RESULTS_FILE = "validation/results.json"
 
 def main():
     delta = 10
-    log_pct_values = [10, 50, 100]
+    log_pct_values = [20, 40, 60, 80, 100]
     combinations = []
 
     # Pre-computiamo tutte le combinazioni valide
@@ -24,7 +24,8 @@ def main():
         object_pct = 100 - event_attr_pct
         for object_attr_pct in range(0, 101, delta):
             for log_pct in log_pct_values:
-                combinations.append((event_attr_pct, object_pct, object_attr_pct, log_pct))
+                combinations.append(
+                    (event_attr_pct, object_pct, object_attr_pct, log_pct))
 
     total = len(combinations)
     start_all = time.perf_counter()
@@ -32,7 +33,7 @@ def main():
     for idx, (event_attr_pct, object_pct, object_attr_pct, log_pct) in enumerate(combinations, start=1):
         logger.info(
             f"🧪 Test {idx}/{total} | event_attr_pct={event_attr_pct}, object_pct={object_pct}, object_attr_pct={object_attr_pct}, log_pct={log_pct}")
-        
+
         start = time.perf_counter()
         try:
             run_validation(
@@ -53,7 +54,9 @@ def main():
         avg_time = elapsed_total / idx
         remaining = avg_time * (total - idx)
 
-        logger.info(f"✅ Completati {idx}/{total} - Tempo stimato rimanente: {remaining:.2f}s ({remaining/60:.1f} min)")
+        logger.info(
+            f"✅ Completati {idx}/{total} - Tempo stimato rimanente: {remaining:.2f}s ({remaining/60:.1f} min)")
+
 
 if __name__ == "__main__":
     main()
