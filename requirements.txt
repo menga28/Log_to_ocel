@@ -4,3 +4,4 @@ pandas
 pm4py
 python-dotenv
 pytest
+psutil

@@ -14,6 +14,7 @@ import argparse
 import logging
 import string
 import random
+import psutil
 
 
 p_activity = "activity"
@@ -35,29 +36,27 @@ os.makedirs("validation", exist_ok=True)
 
 
 def generate_o2o_mapping(data_service):
-    """Genera dinamicamente la mappatura per le relazioni O2O basandosi sulle combinazioni presenti in OCEL."""
+    """Genera la mappatura per le relazioni O2O e restituisce anche il numero di relazioni totali."""
     if data_service.ocel_o2o is None or "o2o" not in dir(data_service.ocel_o2o):
-        logger.warning(
-            "⚠️ O2O: OCEL O2O non trovato, nessuna mappatura creata.")
-        return {}
+        logger.warning("⚠️ O2O: OCEL O2O non trovato.")
+        return {}, 0
 
-    # Prendi tutte le combinazioni uniche di oggetti collegati tra loro
-    unique_pairs = data_service.ocel_o2o.o2o[[
-        'ocel:oid', 'ocel:oid_2']].drop_duplicates()
+    df = data_service.ocel_o2o.o2o[['ocel:oid', 'ocel:oid_2']]
+    total_relations = len(df)
 
-    if unique_pairs.empty:
+    if df.empty:
         logger.warning("⚠️ Nessuna relazione O2O trovata!")
-        return {}
+        return {}, 0
 
-    # Crea un mapping con chiavi 'oggetto_1|oggetto_2' e valori stringhe casuali
+    unique_pairs = df.drop_duplicates()
     o2o_mapping = {
         f"{row['ocel:oid']}|{row['ocel:oid_2']}": generate_random_string()
         for _, row in unique_pairs.iterrows()
     }
 
     logger.info(
-        f"🔍 Mappatura O2O generata ({len(o2o_mapping)} relazioni): {o2o_mapping}")
-    return o2o_mapping
+        f"🔍 Mappatura O2O generata ({len(o2o_mapping)} mapping da {total_relations} relazioni totali)")
+    return o2o_mapping, total_relations
 
 
 def get_file_size_kb(file_path):
@@ -99,24 +98,26 @@ def generate_random_string(length=5):
 
 
 def generate_e2o_mapping(data_service):
-    """Genera dinamicamente la mappatura per le relazioni E2O basandosi sulle combinazioni presenti in OCEL."""
+    """Genera la mappatura per le relazioni E2O e restituisce anche il numero di relazioni totali."""
     if data_service.ocel is None or "relations" not in dir(data_service.ocel):
-        return {}
+        return {}, 0
 
-    unique_pairs = data_service.ocel.relations[[
-        'ocel:type', 'ocel:activity']].drop_duplicates()
+    df = data_service.ocel.relations[['ocel:type', 'ocel:activity']]
+    total_relations = len(df)
 
-    if unique_pairs.empty:
+    if df.empty:
         logger.warning("⚠️ Nessuna relazione E2O trovata!")
-        return {}
+        return {}, 0
 
+    unique_pairs = df.drop_duplicates()
     e2o_mapping = {
         f"{row['ocel:type']}|{row['ocel:activity']}": generate_random_string()
         for _, row in unique_pairs.iterrows()
     }
 
-    logger.info(f"🔍 Mappatura E2O generata ({len(e2o_mapping)} relazioni)")
-    return e2o_mapping
+    logger.info(
+        f"🔍 Mappatura E2O generata ({len(e2o_mapping)} mapping da {total_relations} relazioni totali)")
+    return e2o_mapping, total_relations
 
 
 def assign_columns_to_objects_and_events(df_columns, num_objects, num_event_attr):
@@ -174,6 +175,25 @@ def append_result(new_result):
 
     with open(results_file, "w") as f:
         json.dump(existing_results, f, indent=4)
+
+
+def get_resource_snapshot():
+    process = psutil.Process(os.getpid())
+    cpu_times = process.cpu_times()
+    mem_info = process.memory_info()
+    return {
+        "cpu_user": cpu_times.user,
+        "cpu_system": cpu_times.system,
+        "memory_rss_kb": mem_info.rss / 1024  # Resident Set Size (in KB)
+    }
+
+def resource_delta(before, after):
+    return {
+        "cpu_user": round(after["cpu_user"] - before["cpu_user"], 4),
+        "cpu_system": round(after["cpu_system"] - before["cpu_system"], 4),
+        "memory_used_kb": round(after["memory_rss_kb"] - before["memory_rss_kb"], 2)
+    }
+
 
 
 # 📌 Funzione principale per eseguire la validazione
@@ -280,7 +300,7 @@ def run_validation(event_attr_pct, object_pct, object_attr_pct, log_pct):
 
     # 🟢 4. Creazione delle relazioni E2O
     start_time = time.time()
-    e2o_mapping = generate_e2o_mapping(data_service)
+    e2o_mapping, num_e2o_relations = generate_e2o_mapping(data_service)
     data_service.set_e2o_relationship_qualifiers(e2o_mapping)
     ocel_size_kb_e2o = get_ocel_size_kb(data_service.ocel)
 
@@ -297,7 +317,7 @@ def run_validation(event_attr_pct, object_pct, object_attr_pct, log_pct):
                 "❌ OCEL O2O enrichment non riuscito, `ocel_o2o` è None.")
             raise RuntimeError("Errore: OCEL O2O non è stato creato.")
 
-        o2o_mapping = generate_o2o_mapping(data_service)
+        o2o_mapping, num_o2o_relations = generate_o2o_mapping(data_service)
         if not o2o_mapping:
             logger.warning(
                 "⚠️ Nessuna relazione O2O trovata, salto il mapping.")
@@ -328,6 +348,8 @@ def run_validation(event_attr_pct, object_pct, object_attr_pct, log_pct):
             "num_objects": num_objects,
             "num_event_attr": num_event_attr,
             "num_object_attr": num_object_attr,
+            "num_e2o_relations": num_e2o_relations,
+            "num_o2o_relations": num_o2o_relations,
             "ocel_size_kb_created": ocel_size_kb_created,
             "ocel_size_kb_e2o": ocel_size_kb_e2o,
             "ocel_size_kb_o2o ": ocel_size_kb_o2o
