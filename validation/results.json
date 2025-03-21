@@ -1,16 +1,16 @@
 [
     {
-        "file": "tests/input_data/pancacke100txs.json",
-        "file_size_kb": 250.66,
-        "num_event_attr": 12,
+        "file": "tests/input_data/Pancake1000.json",
+        "file_size_kb": 2413.45,
+        "num_event_attr": 13,
         "num_objects": 8,
         "num_object_attr": 1,
-        "df_size_kb": 90.8,
-        "df_size_kb_norm": 958.78,
-        "ocel_size_kb": 3136.39,
-        "load_time": 0.0233,
-        "norm_time": 0.0385,
-        "ocel_time": 0.2825,
-        "e2o_time": 0.1873
+        "df_size_kb": 795.87,
+        "df_size_kb_norm": 9702.92,
+        "ocel_size_kb": 26562.75,
+        "load_time": 0.0699,
+        "norm_time": 0.256,
+        "ocel_time": 1.527,
+        "e2o_time": 1.3521
     }
 ]
