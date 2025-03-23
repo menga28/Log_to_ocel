@@ -40,7 +40,7 @@ class DataService:
         return self.nested_columns
 
     def load_dataframe(self, filepath):
-        self.start_time = time.time()
+        self.start_time = time.perf_counter()
         try:
             if filepath.endswith('.csv'):
                 self.df = pd.read_csv(filepath)
@@ -50,7 +50,7 @@ class DataService:
                 self.df = pd.DataFrame(data)
 
             self.nested_keys()
-            self.end_time = time.time()
+            self.end_time = time.perf_counter()
             self.current_file = filepath
 
             logger.info(f"DEBUG: Caricamento riuscito per {filepath}.")

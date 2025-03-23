@@ -116,7 +116,7 @@ def generate_o2o_mapping(data_service):
 
 def log_step(step_name, start_time, file_path, config_name, file_size_kb, df_size_kb, ocel_size_kb, success=True, error_message=None):
     """Registra un passo nel file CSV con il tempo impiegato, dimensioni e configurazione usata."""
-    elapsed_time = round(time.time() - start_time, 4)
+    elapsed_time = round(time.perf_counter() - start_time, 4)
     status = "PASS" if success else "FAIL"
     message = error_message if error_message else "OK"
 
@@ -136,21 +136,21 @@ def test_ocel_enrichment(data_service, file_path):
             f"⚙️ DEBUG: Test con configurazione {config_name} per il file {file_path}")
 
         # 🟢 1. Caricamento del file
-        start_time = time.time()
+        start_time = time.perf_counter()
         data_service.load_dataframe(file_path)
         df_size_kb = get_dataframe_size_kb(data_service.df)
         log_step("Load DataFrame", start_time, file_path,
                  config_name, file_size_kb, df_size_kb, 0.00)
 
         # 🟢 2. Normalizzazione
-        start_time = time.time()
+        start_time = time.perf_counter()
         data_service.normalize_data([0])
         df_size_kb = get_dataframe_size_kb(data_service.df_normalized)
         log_step("Normalize Data", start_time, file_path,
                  config_name, file_size_kb, df_size_kb, 0.00)
 
         # 🟢 3. Conversione OCEL
-        start_time = time.time()
+        start_time = time.perf_counter()
         try:
             data_service.set_ocel_parameters(
                 activity=p_activity,
@@ -166,7 +166,7 @@ def test_ocel_enrichment(data_service, file_path):
             pytest.fail(f"Errore nella conversione OCEL: {str(e)}")
 
         # 🟢 4. Creazione delle relazioni E2O
-        start_time = time.time()
+        start_time = time.perf_counter()
         try:
             e2o_mapping = generate_e2o_mapping(data_service)
             data_service.set_e2o_relationship_qualifiers(e2o_mapping)
@@ -177,7 +177,7 @@ def test_ocel_enrichment(data_service, file_path):
                 f"Errore nella creazione delle relazioni E2O: {str(e)}")
 
         # 🟢 5. Creazione delle relazioni O2O
-        start_time = time.time()
+        start_time = time.perf_counter()
         try:
             data_service.o2o_enrichment()
 

@@ -25,7 +25,7 @@ def get_all_files(directory, extensions=[".json", ".csv"]):
 
 def log_step(step_name, start_time, file_path, success=True, error_message=None):
     """Registra il passaggio nel file CSV con tempo e stato."""
-    elapsed_time = time.time() - start_time
+    elapsed_time = time.perf_counter() - start_time
     status = "PASS" if success else "FAIL"
     message = error_message if error_message else "OK"
 
@@ -36,7 +36,7 @@ def log_step(step_name, start_time, file_path, success=True, error_message=None)
 @pytest.mark.parametrize("file_path", list(set(get_all_files("tests/input_data/"))))
 def test_load_files(data_service, file_path):
     """Test per caricare tutti i file di input (JSON/CSV) e verificarne la validità."""
-    start_time = time.time()
+    start_time = time.perf_counter()
     df = data_service.load_dataframe(file_path)
 
     assert df is not None, f"Errore nel caricamento del file {file_path}"
@@ -49,7 +49,7 @@ def test_load_files(data_service, file_path):
 @pytest.mark.parametrize("file_path", list(set(get_all_files("tests/input_data/"))))
 def test_normalization(data_service, file_path):
     """Test per verificare la normalizzazione delle colonne nidificate nei file JSON."""
-    start_time = time.time()
+    start_time = time.perf_counter()
     data_service.load_dataframe(file_path)
     nested_columns = data_service.nested_keys()
 

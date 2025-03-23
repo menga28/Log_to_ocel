@@ -171,7 +171,7 @@ def run_validation(event_attr_pct, object_pct, object_attr_pct, log_pct):
     data_service = DataService()
 
     # 🟢 1. Caricamento del file
-    start_time = time.time()
+    start_time = time.perf_counter()
     data_service.load_dataframe(file_path)
     if 0 < log_pct < 100:
         original_len = len(data_service.df)
@@ -179,7 +179,7 @@ def run_validation(event_attr_pct, object_pct, object_attr_pct, log_pct):
             int((log_pct / 100) * original_len))
         # LOG_DISABLED: logger.info(f"Dataset ridotto al {log_pct}%: da {original_len} a {len(data_service.df)} righe")
     df_size_kb = get_dataframe_size_kb(data_service.df)
-    load_time = round(time.time() - start_time, 4)
+    load_time = round(time.perf_counter() - start_time, 4)
     # LOG_DISABLED: logger.info(f"File caricato: {file_path} ({df_size_kb} KB) - Tempo: {load_time}s")
 
     # 🟢 2. Normalizzazione
@@ -189,10 +189,10 @@ def run_validation(event_attr_pct, object_pct, object_attr_pct, log_pct):
             col) for col in normalizable_columns if col in data_service.nested_columns]
         # LOG_DISABLED: logger.info(f"🛠 DEBUG: Indici per la normalizzazione: {normalizable_indexes}")
         # LOG_DISABLED: logger.info(f"🛠 DEBUG: Colonne effettive del DataFrame: {data_service.df.columns.tolist()}")
-        start_time = time.time()
+        start_time = time.perf_counter()
         data_service.normalize_data(normalizable_indexes)
         df_size_kb_norm = get_dataframe_size_kb(data_service.df_normalized)
-        norm_time = round(time.time() - start_time, 4)
+        norm_time = round(time.perf_counter() - start_time, 4)
         # LOG_DISABLED: logger.info(f"🔄 Normalizzazione completata per colonne: {normalizable_columns} - Tempo: {norm_time}s")
     else:
         logger.warning("Nessuna colonna normalizzabile trovata.")
@@ -222,7 +222,7 @@ def run_validation(event_attr_pct, object_pct, object_attr_pct, log_pct):
     # LOG_DISABLED: logger.info(f"Configurazione calcolata - Oggetti: {object_types}, Eventi: {events_attrs}, Attributi/Oggetto: {object_attrs}")
 
     # 🟢 3. Conversione OCEL
-    start_time = time.time()
+    start_time = time.perf_counter()
     try:
         data_service.set_ocel_parameters(
             activity=p_activity,
@@ -234,19 +234,19 @@ def run_validation(event_attr_pct, object_pct, object_attr_pct, log_pct):
     except Exception as e:
         logger.error(f"Errore durante `set_ocel_parameters`: {str(e)}")
     ocel_size_kb_created = get_ocel_size_kb(data_service.ocel)
-    ocel_time = round(time.time() - start_time, 4)
+    ocel_time = round(time.perf_counter() - start_time, 4)
     # LOG_DISABLED: logger.info(f"🔀 OCEL creato - Dimensione: {ocel_size_kb_created} KB - Tempo: {ocel_time}s")
 
     # 🟢 4. Relazioni E2O
-    start_time = time.time()
+    start_time = time.perf_counter()
     e2o_mapping, num_e2o_relations = generate_e2o_mapping(data_service)
     data_service.set_e2o_relationship_qualifiers(e2o_mapping)
     ocel_size_kb_e2o = get_ocel_size_kb(data_service.ocel)
-    e2o_time = round(time.time() - start_time, 4)
+    e2o_time = round(time.perf_counter() - start_time, 4)
     # LOG_DISABLED: logger.info(f"🔗 Relazioni E2O impostate - Tempo: {e2o_time}s")
 
     # 🟢 5. Relazioni O2O
-    start_time = time.time()
+    start_time = time.perf_counter()
     try:
         data_service.o2o_enrichment()
         if data_service.ocel_o2o is None:
@@ -259,7 +259,7 @@ def run_validation(event_attr_pct, object_pct, object_attr_pct, log_pct):
                 "Nessuna relazione O2O trovata, salto il mapping.")
         data_service.set_o2o_relationship_qualifiers(o2o_mapping)
         ocel_size_kb_o2o = get_ocel_size_kb(data_service.ocel)
-        o2o_time = round(time.time() - start_time, 4)
+        o2o_time = round(time.perf_counter() - start_time, 4)
         # LOG_DISABLED: logger.info(f"🔁 Relazioni O2O impostate - Tempo: {o2o_time}s")
     except Exception as e:
         logger.error(f"Errore nella creazione delle relazioni O2O: {str(e)}")

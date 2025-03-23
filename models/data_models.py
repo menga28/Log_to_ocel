@@ -56,11 +56,11 @@ class DataModel:
 
     def set_current_file(self, path):
         try:
-            self.start_time = time.time()
+            self.start_time = time.perf_counter()
             with open(path, "r") as file:
                 data = json.load(file)
             self.df = pd.DataFrame(data)
-            self.end_time = time.time()
+            self.end_time = time.perf_counter()
         except ValueError as e:
             print(f"Errore di struttura JSON: {str(e)}")
             self.df = None

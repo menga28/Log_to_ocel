@@ -14,7 +14,7 @@ def data_service():
 
 def log_step(step_name, start_time, config_name, success=True, error_message=None):
     """Registra il passaggio nel file CSV con tempo e configurazione usata."""
-    elapsed_time = time.time() - start_time
+    elapsed_time = time.perf_counter() - start_time
     status = "PASS" if success else "FAIL"
     message = error_message if error_message else "OK"
 
@@ -28,17 +28,17 @@ def test_ocel_conversion(data_service, config):
     file_path = "tests/input_data/pancacke100txs.json"
 
     # 🟢 1. Caricamento del file
-    start_time = time.time()
+    start_time = time.perf_counter()
     data_service.load_dataframe(file_path)
     log_step("Load DataFrame", start_time, config["name"])
 
     # 🟢 2. Normalizzazione
-    start_time = time.time()
+    start_time = time.perf_counter()
     data_service.normalize_data([0])
     log_step("Normalize Data", start_time, config["name"])
 
     # 🟢 3. Conversione in OCEL
-    start_time = time.time()
+    start_time = time.perf_counter()
     try:
         data_service.set_ocel_parameters(
             activity=p_activity,
