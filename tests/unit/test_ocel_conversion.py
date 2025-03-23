@@ -47,7 +47,7 @@ def test_ocel_conversion(data_service, config):
             events_attrs=config["p_additional_event_attributes"],
             object_attrs=config["p_additional_object_attributes"]
         )
-        assert data_service.ocel is not None, f"❌ OCEL non creato con configurazione: {config['name']}"
+        assert data_service.ocel is not None, f"OCEL non creato con configurazione: {config['name']}"
         log_step("Set OCEL Parameters", start_time, config["name"])
     except Exception as e:
         log_step("Set OCEL Parameters", start_time,

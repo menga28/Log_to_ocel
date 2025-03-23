@@ -8,7 +8,7 @@ from tests.unit.utils import get_all_files, setup_logger
 from tests.unit.config import test_configs, p_activity, p_timestamp
 from app.services.data_service import DataService
 
-# 📌 Configura il logger per salvare i log in un file CSV
+# Configura il logger per salvare i log in un file CSV
 logger = setup_logger("test_results", "validation/logs/test_results.csv")
 
 
@@ -22,7 +22,7 @@ def get_file_size_kb(file_path):
     """Restituisce la dimensione del file in KB o 0.00 se non esiste."""
     if os.path.exists(file_path):
         return round(os.path.getsize(file_path) / 1024, 2)
-    logger.warning(f"⚠️ File non trovato: {file_path}")
+    logger.warning(f"File non trovato: {file_path}")
     return 0.00
 
 
@@ -74,7 +74,7 @@ def generate_e2o_mapping(data_service):
         'ocel:type', 'ocel:activity']].drop_duplicates()
 
     if unique_pairs.empty:
-        logger.warning("⚠️ Nessuna relazione E2O trovata!")
+        logger.warning("Nessuna relazione E2O trovata!")
         return {}
 
     # Crea un mapping con chiavi 'tipo|attività' e valori stringhe casuali
@@ -84,7 +84,7 @@ def generate_e2o_mapping(data_service):
     }
 
     logger.info(
-        f"🔍 Mappatura E2O generata ({len(e2o_mapping)} relazioni): {e2o_mapping}")
+        f"Mappatura E2O generata ({len(e2o_mapping)} relazioni): {e2o_mapping}")
     return e2o_mapping
 
 
@@ -92,7 +92,7 @@ def generate_o2o_mapping(data_service):
     """Genera dinamicamente la mappatura per le relazioni O2O basandosi sulle combinazioni presenti in OCEL."""
     if data_service.ocel_o2o is None or "o2o" not in dir(data_service.ocel_o2o):
         logger.warning(
-            "⚠️ O2O: OCEL O2O non trovato, nessuna mappatura creata.")
+            "O2O: OCEL O2O non trovato, nessuna mappatura creata.")
         return {}
 
     # Prendi tutte le combinazioni uniche di oggetti collegati tra loro
@@ -100,7 +100,7 @@ def generate_o2o_mapping(data_service):
         'ocel:oid', 'ocel:oid_2']].drop_duplicates()
 
     if unique_pairs.empty:
-        logger.warning("⚠️ Nessuna relazione O2O trovata!")
+        logger.warning("Nessuna relazione O2O trovata!")
         return {}
 
     # Crea un mapping con chiavi 'oggetto_1|oggetto_2' e valori stringhe casuali
@@ -110,7 +110,7 @@ def generate_o2o_mapping(data_service):
     }
 
     logger.info(
-        f"🔍 Mappatura O2O generata ({len(o2o_mapping)} relazioni): {o2o_mapping}")
+        f"Mappatura O2O generata ({len(o2o_mapping)} relazioni): {o2o_mapping}")
     return o2o_mapping
 
 
@@ -183,13 +183,13 @@ def test_ocel_enrichment(data_service, file_path):
 
             if data_service.ocel_o2o is None:
                 logger.error(
-                    "❌ OCEL O2O enrichment non riuscito, `ocel_o2o` è None.")
+                    "OCEL O2O enrichment non riuscito, `ocel_o2o` è None.")
                 pytest.fail("Errore: OCEL O2O non è stato creato.")
 
             o2o_mapping = generate_o2o_mapping(data_service)
             if not o2o_mapping:
                 logger.warning(
-                    "⚠️ Nessuna relazione O2O trovata, salto il mapping.")
+                    "Nessuna relazione O2O trovata, salto il mapping.")
 
             data_service.set_o2o_relationship_qualifiers(o2o_mapping)
             log_step("Set O2O Relationships", start_time, file_path, config_name,

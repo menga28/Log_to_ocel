@@ -20,7 +20,7 @@ def main():
     combinations = []
 
     # Pre-computiamo tutte le combinazioni valide
-    for event_attr_pct in range(0, 101, delta):
+    for event_attr_pct in range(0, 91, delta):  # da 0 a 90 inclusi
         object_pct = 100 - event_attr_pct
         for object_attr_pct in range(0, 101, delta):
             for log_pct in log_pct_values:
@@ -44,7 +44,7 @@ def main():
             )
         except Exception as e:
             logger.error(
-                f"❌ Errore per combinazione {event_attr_pct}-{object_pct}-{object_attr_pct}-{log_pct}: {str(e)}")
+                f"Errore per combinazione {event_attr_pct}-{object_pct}-{object_attr_pct}-{log_pct}: {str(e)}")
         end = time.perf_counter()
 
         elapsed_test = end - start
@@ -55,7 +55,7 @@ def main():
         remaining = avg_time * (total - idx)
 
         logger.info(
-            f"✅ Completati {idx}/{total} - Tempo stimato rimanente: {remaining:.2f}s ({remaining/60:.1f} min)")
+            f"Completati {idx}/{total} - Tempo stimato rimanente: {remaining:.2f}s ({remaining/60:.1f} min)")
 
 
 if __name__ == "__main__":

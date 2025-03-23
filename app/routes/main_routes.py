@@ -17,26 +17,26 @@ data_service = DataService()
 
 @main_bp.route('/')
 def index():
-    logger.info("📌 Rendering index page")
+    logger.info("Rendering index page")
     return render_template('index.html')
 
 
 @main_bp.route('/upload', methods=['POST'])
 def upload_file():
-    logger.info("📂 Upload endpoint called")
+    logger.info("Upload endpoint called")
     if 'file' not in request.files:
-        logger.error("❌ No file part in request")
+        logger.error("No file part in request")
         return jsonify({'error': 'No file part'}), 400
 
     file = request.files['file']
     if file.filename == '':
-        logger.error("❌ No selected file")
+        logger.error("No selected file")
         return jsonify({'error': 'No selected file'}), 400
 
-    logger.info(f"📂 Processing file: {file.filename}")
+    logger.info(f"Processing file: {file.filename}")
     if file and file_service.allowed_file(file.filename):
         filepath = file_service.save_file(file)
-        logger.info(f"✅ File saved at {filepath}")
+        logger.info(f"File saved at {filepath}")
         df = data_service.load_dataframe(filepath)
         if df is not None:
             stats = {
@@ -44,25 +44,25 @@ def upload_file():
                 "data_types": df.dtypes.astype(str).to_dict()
             }
             logger.info(
-                f"✅ File processed successfully with {len(stats['columns'])} columns")
+                f"File processed successfully with {len(stats['columns'])} columns")
             return jsonify(stats)
         else:
-            logger.error(f"❌ Error loading DataFrame: {data_service.error}")
+            logger.error(f"Error loading DataFrame: {data_service.error}")
             return jsonify({'error': data_service.error}), 400
 
-    logger.error("❌ Invalid file type")
+    logger.error("Invalid file type")
     return jsonify({'error': 'Invalid file type'}), 400
 
 
 @main_bp.route('/preview', methods=['GET'])
 def get_preview():
-    logger.info("🔍 Preview endpoint called")
+    logger.info("Preview endpoint called")
     if data_service.df is None:
-        logger.error("❌ No data loaded for preview")
+        logger.error("No data loaded for preview")
         return jsonify({"error": "No data loaded"}), 400
 
     preview_data = data_service.get_preview_data()
-    logger.info("✅ Preview data retrieved successfully")
+    logger.info("Preview data retrieved successfully")
     return jsonify({
         "nested_columns": data_service.nested_columns,
         "preview_columns": preview_data['columns'],
@@ -80,14 +80,14 @@ def handle_normalization():
         if data_service.df_normalized is not None:
             normalized_columns = data_service.df_normalized.columns.tolist()
             logger.info(
-                f"✅ Normalization completed successfully. Columns: {normalized_columns}")
+                f"Normalization completed successfully. Columns: {normalized_columns}")
             return jsonify({"message": "Normalization successful", "columns": normalized_columns}), 200
 
-        logger.error("❌ Normalization failed")
+        logger.error("Normalization failed")
         return jsonify({"error": "Normalization failed"}), 400
 
     except Exception as e:
-        logger.error(f"❌ Error during normalization: {e}")
+        logger.error(f"Error during normalization: {e}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -104,7 +104,7 @@ def set_ocel_parameters():
 
         data_service.set_ocel_parameters(
             activity, timestamp, object_types, events_attrs, object_attrs)
-        logger.info("✅ OCEL parameters set successfully")
+        logger.info("OCEL parameters set successfully")
 
         data_service.o2o_enrichment()
         logger.info("🔗 O2O enrichment completed")
@@ -118,7 +118,7 @@ def set_ocel_parameters():
                         "available_types": available_types,
                         "available_activities": available_activities}), 200
     except Exception as e:
-        logger.error(f"❌ Error in set_ocel_parameters: {e}")
+        logger.error(f"Error in set_ocel_parameters: {e}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -140,13 +140,13 @@ def set_o2o_relationship_qualifiers():
         qualifier_map = request.json.get('qualifier_map', {})
         logger.info("Received O2O qualifier map: %s", qualifier_map)
         data_service.set_o2o_relationship_qualifiers(qualifier_map)
-        
+
         # Supponiamo che data_service.save_file abbia salvato il file OCEL aggiornato
         # nel percorso corrente con nome "ocel_o2o_qualifiers.jsonocel".
         file_name = "ocel_o2o_qualifiers.jsonocel"
         file_path = os.path.join(os.getcwd(), file_name)
         logger.info("Sending updated OCEL file from %s", file_path)
-        
+
         # Restituisco il file come attachment; il browser lo scaricherà con il nome "ocel_updated.jsonocel"
         return send_file(file_path, as_attachment=True, download_name="ocel_updated.jsonocel")
     except Exception as e:
@@ -154,16 +154,15 @@ def set_o2o_relationship_qualifiers():
         return jsonify({"error": str(e)}), 500
 
 
-
 @main_bp.route('/get_o2o_objects', methods=['GET'])
 def get_o2o_objects():
     try:
         if data_service.ocel_o2o is None:
-            logger.error("❌ O2O data not initialized")
+            logger.error("O2O data not initialized")
             return jsonify({"error": "O2O data not available"}), 400
 
         logger.info(
-            f"✅ O2O data found: {len(data_service.ocel_o2o.o2o)} relations")
+            f"O2O data found: {len(data_service.ocel_o2o.o2o)} relations")
 
         oids = data_service.ocel_o2o.o2o["ocel:oid"].unique().tolist()
         oids_2 = data_service.ocel_o2o.o2o["ocel:oid_2"].unique(
@@ -174,5 +173,5 @@ def get_o2o_objects():
 
         return jsonify({"oids": oids, "oids_2": oids_2}), 200
     except Exception as e:
-        logger.error(f"❌ Error in get_o2o_objects: {e}")
+        logger.error(f"Error in get_o2o_objects: {e}")
         return jsonify({"error": str(e)}), 500

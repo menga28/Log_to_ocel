@@ -53,13 +53,13 @@ class DataService:
             self.end_time = time.time()
             self.current_file = filepath
 
-            logger.info(f"✅ DEBUG: Caricamento riuscito per {filepath}.")
-            logger.info(f"📊 DEBUG: Anteprima DataFrame:\n{self.df.head()}")
+            logger.info(f"DEBUG: Caricamento riuscito per {filepath}.")
+            logger.info(f"DEBUG: Anteprima DataFrame:\n{self.df.head()}")
             return self.df
 
         except Exception as e:
             self.error = str(e)
-            logger.error(f"❌ ERRORE: Caricamento di {filepath} fallito - {e}")
+            logger.error(f"ERRORE: Caricamento di {filepath} fallito - {e}")
             return None
 
     def get_preview_data(self):
@@ -75,12 +75,12 @@ class DataService:
     def normalize_data(self, indexes_to_normalize: list):
         self.nested_keys()
         if self.df is None or self.df.empty:
-            logger.error("❌ DEBUG: DataFrame vuoto o non valido.")
+            logger.error("DEBUG: DataFrame vuoto o non valido.")
             return None
 
         if not self.nested_columns:
             logger.error(
-                "⚠️ DEBUG: Nessuna colonna nidificata trovata nel DataFrame.")
+                "DEBUG: Nessuna colonna nidificata trovata nel DataFrame.")
             logger.error(f"Colonne disponibili: {self.df.columns.tolist()}")
             return None
 
@@ -89,7 +89,7 @@ class DataService:
         meta_fields = self.not_nested_columns
 
         if not columns_to_normalize:
-            logger.error("⚠️ DEBUG: Nessuna colonna valida da normalizzare.")
+            logger.error("DEBUG: Nessuna colonna valida da normalizzare.")
             return None
 
         logger.info(
@@ -100,7 +100,7 @@ class DataService:
         for col in columns_to_normalize:
             if col in self.df.columns:
                 try:
-                    logger.info(f"📊 DEBUG: Normalizzando colonna {col}...")
+                    logger.info(f"DEBUG: Normalizzando colonna {col}...")
                     normalized_df = pd.json_normalize(
                         self.df.to_dict(orient='records'),
                         record_path=col,
@@ -117,53 +117,53 @@ class DataService:
 
                     normalized_dfs.append(normalized_df)
                     logger.info(
-                        f"✅ DEBUG: Colonna {col} normalizzata con {len(normalized_df)} righe.")
+                        f"DEBUG: Colonna {col} normalizzata con {len(normalized_df)} righe.")
 
                 except Exception as e:
                     logger.error(
-                        f"❌ ERRORE durante la normalizzazione della colonna {col}: {str(e)}")
+                        f"ERRORE durante la normalizzazione della colonna {col}: {str(e)}")
 
             else:
                 logger.warning(
-                    f"⚠️ DEBUG: Colonna {col} non trovata nel DataFrame.")
+                    f"DEBUG: Colonna {col} non trovata nel DataFrame.")
 
         if not normalized_dfs:
             logger.error(
-                "❌ DEBUG: Nessuna colonna è stata normalizzata, restituisco None.")
+                "DEBUG: Nessuna colonna è stata normalizzata, restituisco None.")
             return None
 
         self.df_normalized = pd.concat(normalized_dfs, ignore_index=True)
         self.df_size_normalized = self.df_normalized.memory_usage(
             deep=True).sum() / 1024
         logger.info(
-            f"✅ DEBUG: DataFrame normalizzato con {len(self.df_normalized)} righe e colonne: {self.df_normalized.columns.tolist()}")
+            f"DEBUG: DataFrame normalizzato con {len(self.df_normalized)} righe e colonne: {self.df_normalized.columns.tolist()}")
         return self.df_normalized
 
     def set_ocel_parameters(self, activity, timestamp, object_types, events_attrs, object_attrs):
-        logger.info(f"📌 set_ocel_parameters called with: "
+        logger.info(f"set_ocel_parameters called with: "
                     f"activity={activity}, timestamp={timestamp}, object_types={object_types}, "
                     f"events_attrs={events_attrs}, object_attrs={object_attrs}")
 
         if self.df_normalized is None:
-            logger.error("❌ Error: Normalized DataFrame is not available.")
+            logger.error("Error: Normalized DataFrame is not available.")
             raise ValueError("Normalized DataFrame is not available.")
 
         # **Controllo se le colonne esistono**
         if activity not in self.df_normalized.columns:
             logger.error(
-                f"❌ Error: Activity column '{activity}' not found in DataFrame.")
+                f"Error: Activity column '{activity}' not found in DataFrame.")
             raise ValueError(
                 f"Activity column '{activity}' not found in DataFrame.")
 
         if timestamp not in self.df_normalized.columns:
             logger.error(
-                f"❌ Error: Timestamp column '{timestamp}' not found in DataFrame.")
+                f"Error: Timestamp column '{timestamp}' not found in DataFrame.")
             raise ValueError(
                 f"Timestamp column '{timestamp}' not found in DataFrame.")
 
-        logger.info(f"🔍 DEBUG: Object types passati a OCEL: {object_types}")
+        logger.info(f"DEBUG: Object types passati a OCEL: {object_types}")
         logger.info(
-            f"🔍 DEBUG: Colonne disponibili nel DataFrame normalizzato: {self.df_normalized.columns.tolist()}")
+            f"DEBUG: Colonne disponibili nel DataFrame normalizzato: {self.df_normalized.columns.tolist()}")
 
         try:
             self.ocel = pm4py.convert.convert_log_to_ocel(
@@ -174,11 +174,12 @@ class DataService:
                 additional_event_attributes=events_attrs,
                 additional_object_attributes=object_attrs
             )
-            logger.info("✅ OCEL log created successfully!")
+            logger.info("OCEL log created successfully!")
 
         except Exception as e:
-            logger.error(f"❌ Error converting log to OCEL: {str(e)}")
-            logger.error(f"🔍 Stack trace completo:\n{traceback.format_exc()}")  # Stampa lo stack trace
+            logger.error(f"Error converting log to OCEL: {str(e)}")
+            # Stampa lo stack trace
+            logger.error(f"Stack trace completo:\n{traceback.format_exc()}")
             raise e  # Propaga l'errore
 
         self.ocel_info_extraction()
@@ -186,11 +187,12 @@ class DataService:
         self.save_file(self.ocel, "ocel_created")
 
     def set_e2o_relationship_qualifiers(self, qualifier_map):
-        converted_map = {tuple(k.split("|")): v for k, v in qualifier_map.items()}
+        converted_map = {tuple(k.split("|")): v for k,
+                         v in qualifier_map.items()}
 
-        # 🔍 Debug: Controlliamo la dimensione PRIMA
+        # Debug: Controlliamo la dimensione PRIMA
         logger.info(
-            f"🔍 DEBUG (PRIMA di E2O): OCEL relations size = {self.ocel.relations.memory_usage(deep=True).sum()/1024:.2f} KB")
+            f"DEBUG (PRIMA di E2O): OCEL relations size = {self.ocel.relations.memory_usage(deep=True).sum()/1024:.2f} KB")
 
         try:
             self.ocel.relations['ocel:qualifier'] = self.ocel.relations.apply(
@@ -199,7 +201,7 @@ class DataService:
 
             # Controlliamo se ci sono righe che contengono solo NaN
             num_na = self.ocel.relations['ocel:qualifier'].isna().sum()
-            logger.info(f"⚠️ DEBUG: Righe con NaN in `qualifier`: {num_na}")
+            logger.info(f"DEBUG: Righe con NaN in `qualifier`: {num_na}")
 
             # Evitiamo di eliminare tutto accidentalmente
             if num_na < len(self.ocel.relations):
@@ -207,38 +209,41 @@ class DataService:
                 )]
             else:
                 logger.warning(
-                    "⚠️ ERRORE: Tutte le righe sarebbero eliminate! Skippo il filtraggio.")
+                    "ERRORE: Tutte le righe sarebbero eliminate! Skippo il filtraggio.")
 
-            # 🔍 Debug: Controlliamo la dimensione DOPO
+            # Debug: Controlliamo la dimensione DOPO
             logger.info(
-                f"🔍 DEBUG (DOPO di E2O): OCEL relations size = {self.ocel.relations.memory_usage(deep=True).sum()/1024:.2f} KB")
+                f"DEBUG (DOPO di E2O): OCEL relations size = {self.ocel.relations.memory_usage(deep=True).sum()/1024:.2f} KB")
 
             logger.info(
-                "✅ DEBUG: E2O Relationship Qualifiers aggiornati correttamente.")
+                "DEBUG: E2O Relationship Qualifiers aggiornati correttamente.")
             self.save_file(self.ocel, "ocel_e2o_qualifiers")
 
         except Exception as e:
             logger.error(
-                f"❌ ERRORE in `set_e2o_relationship_qualifiers`: {str(e)}")
+                f"ERRORE in `set_e2o_relationship_qualifiers`: {str(e)}")
             raise e
 
     def o2o_enrichment(self, included_graphs=["object_interaction_graph"]):
         if self.ocel is None:
-            raise ValueError("OCEL log has not been created. Please run set_ocel_parameters first.")
+            raise ValueError(
+                "OCEL log has not been created. Please run set_ocel_parameters first.")
         try:
             # Enrich the existing OCEL with O2O relations.
-            self.ocel_o2o = pm4py.ocel_o2o_enrichment(self.ocel, included_graphs=included_graphs)
+            self.ocel_o2o = pm4py.ocel_o2o_enrichment(
+                self.ocel, included_graphs=included_graphs)
 
             # Verifica che l'arricchimento abbia prodotto un risultato valido
             if self.ocel_o2o is None or "o2o" not in dir(self.ocel_o2o):
-                raise ValueError("O2O enrichment failed: No valid OCEL O2O structure created.")
+                raise ValueError(
+                    "O2O enrichment failed: No valid OCEL O2O structure created.")
 
             # Initialize the 'ocel:qualifier' field to None.
             self.ocel_o2o.o2o["ocel:qualifier"] = None
-            logger.info("✅ O2O enrichment completed. OCEL_o2o created.")
+            logger.info("O2O enrichment completed. OCEL_o2o created.")
             self.save_file(self.ocel_o2o, "ocel_o2o")
         except Exception as e:
-            logger.error(f"❌ Error during O2O enrichment: {str(e)}")
+            logger.error(f"Error during O2O enrichment: {str(e)}")
             raise e
 
     def set_o2o_relationship_qualifiers(self, qualifier_map):
@@ -280,9 +285,9 @@ class DataService:
             logger.info("⏭️ Salvataggio OCEL disattivato, skip del file.")
             return
         try:
-            logger.info(f"📂 Saving OCEL log to {file_name}.jsonocel")
+            logger.info(f"Saving OCEL log to {file_name}.jsonocel")
             pm4py.write.write_ocel2_json(obj, file_name + ".jsonocel")
-            logger.info("✅ OCEL log saved successfully!")
+            logger.info("OCEL log saved successfully!")
         except Exception as e:
-            logger.error(f"❌ Error saving OCEL log: {str(e)}")
+            logger.error(f"Error saving OCEL log: {str(e)}")
             raise e

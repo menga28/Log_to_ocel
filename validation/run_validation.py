@@ -14,7 +14,7 @@ import threading
 p_activity = "activity"
 p_timestamp = "timestamp"
 
-# 📌 Configura il logger
+# Configura il logger
 os.makedirs("validation/logs", exist_ok=True)
 logging.basicConfig(
     level=logging.INFO,
@@ -22,27 +22,27 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# 📌 Directory per i risultati
+# Directory per i risultati
 RESULTS_FILE = "validation/results.json"
 os.makedirs("validation", exist_ok=True)
 
 # Definisci un lock globale
 file_write_lock = threading.Lock()
 
-# 📌 Funzioni di supporto
+# Funzioni di supporto
 
 
 def generate_o2o_mapping(data_service):
     """Genera la mappatura per le relazioni O2O e restituisce anche il numero di relazioni totali."""
     if data_service.ocel_o2o is None or "o2o" not in dir(data_service.ocel_o2o):
-        logger.warning("⚠️ O2O: OCEL O2O non trovato.")
+        logger.warning("O2O: OCEL O2O non trovato.")
         return {}, 0
 
     df = data_service.ocel_o2o.o2o[['ocel:oid', 'ocel:oid_2']]
     total_relations = len(df)
 
     if df.empty:
-        logger.warning("⚠️ Nessuna relazione O2O trovata!")
+        logger.warning("Nessuna relazione O2O trovata!")
         return {}, 0
 
     unique_pairs = df.drop_duplicates()
@@ -51,7 +51,7 @@ def generate_o2o_mapping(data_service):
         for _, row in unique_pairs.iterrows()
     }
 
-    # LOG_DISABLED: logger.info(f"🔍 Mappatura O2O generata ({len(o2o_mapping)} mapping da {total_relations} relazioni totali)")
+    # LOG_DISABLED: logger.info(f"Mappatura O2O generata ({len(o2o_mapping)} mapping da {total_relations} relazioni totali)")
     return o2o_mapping, total_relations
 
 
@@ -102,7 +102,7 @@ def generate_e2o_mapping(data_service):
     total_relations = len(df)
 
     if df.empty:
-        logger.warning("⚠️ Nessuna relazione E2O trovata!")
+        logger.warning("Nessuna relazione E2O trovata!")
         return {}, 0
 
     unique_pairs = df.drop_duplicates()
@@ -111,7 +111,7 @@ def generate_e2o_mapping(data_service):
         for _, row in unique_pairs.iterrows()
     }
 
-    # LOG_DISABLED: logger.info(f"🔍 Mappatura E2O generata ({len(e2o_mapping)} mapping da {total_relations} relazioni totali)")
+    # LOG_DISABLED: logger.info(f"Mappatura E2O generata ({len(e2o_mapping)} mapping da {total_relations} relazioni totali)")
     return e2o_mapping, total_relations
 
 
@@ -120,8 +120,12 @@ def assign_columns_to_objects_and_events(df_columns, num_objects, num_event_attr
     Assegna le colonne del DataFrame normalizzato agli oggetti e agli eventi, 
     escludendo 'activity' e 'timestamp'.
     """
+    # random.seed(1999)
     filtered_columns = [
         col for col in df_columns if col not in ["activity", "timestamp"]]
+
+    random.shuffle(filtered_columns)  # 💥 Mischia le colonne ad ogni esecuzione
+
     object_types = filtered_columns[:num_objects]
     event_attrs = filtered_columns[num_objects:num_objects + num_event_attr]
     return object_types, event_attrs
@@ -160,7 +164,7 @@ def append_result(new_result):
 def run_validation(event_attr_pct, object_pct, object_attr_pct, log_pct):
     results = []
 
-    logger.info("🚀 Inizio validazione...")
+    logger.info("Inizio validazione...")
 
     file_path = "tests/input_data/Pancake1000.json"
     file_size_kb = get_file_size_kb(file_path)
@@ -173,10 +177,10 @@ def run_validation(event_attr_pct, object_pct, object_attr_pct, log_pct):
         original_len = len(data_service.df)
         data_service.df = data_service.df.head(
             int((log_pct / 100) * original_len))
-        # LOG_DISABLED: logger.info(f"✂️ Dataset ridotto al {log_pct}%: da {original_len} a {len(data_service.df)} righe")
+        # LOG_DISABLED: logger.info(f"Dataset ridotto al {log_pct}%: da {original_len} a {len(data_service.df)} righe")
     df_size_kb = get_dataframe_size_kb(data_service.df)
     load_time = round(time.time() - start_time, 4)
-    # LOG_DISABLED: logger.info(f"📂 File caricato: {file_path} ({df_size_kb} KB) - Tempo: {load_time}s")
+    # LOG_DISABLED: logger.info(f"File caricato: {file_path} ({df_size_kb} KB) - Tempo: {load_time}s")
 
     # 🟢 2. Normalizzazione
     normalizable_columns = get_normalizable_columns(data_service.df)
@@ -191,14 +195,14 @@ def run_validation(event_attr_pct, object_pct, object_attr_pct, log_pct):
         norm_time = round(time.time() - start_time, 4)
         # LOG_DISABLED: logger.info(f"🔄 Normalizzazione completata per colonne: {normalizable_columns} - Tempo: {norm_time}s")
     else:
-        logger.warning("⚠️ Nessuna colonna normalizzabile trovata.")
+        logger.warning("Nessuna colonna normalizzabile trovata.")
 
     if data_service.df_normalized is not None:
         normalized_columns = list(data_service.df_normalized.columns)
-        # LOG_DISABLED: logger.info(f"📌 Colonne dopo normalizzazione: {normalized_columns}")
-        # LOG_DISABLED: logger.info(f"📊 DEBUG: Prime 5 righe del DataFrame normalizzato:\n{data_service.df_normalized.head()}")
+        # LOG_DISABLED: logger.info(f"Colonne dopo normalizzazione: {normalized_columns}")
+        # LOG_DISABLED: logger.info(f"DEBUG: Prime 5 righe del DataFrame normalizzato:\n{data_service.df_normalized.head()}")
     else:
-        logger.error("❌ Errore: df_normalized è None dopo la normalizzazione.")
+        logger.error("Errore: df_normalized è None dopo la normalizzazione.")
         normalized_columns = []
 
     num_objects = min(
@@ -214,8 +218,8 @@ def run_validation(event_attr_pct, object_pct, object_attr_pct, log_pct):
                                    num_object_attr) if num_object_attr > 0 else [obj]
         for obj in object_types
     }
-    # LOG_DISABLED: logger.info(f"✅ DEBUG: `object_attrs` costruito correttamente:\n{json.dumps(object_attrs, indent=4)}")
-    # LOG_DISABLED: logger.info(f"🔢 Configurazione calcolata - Oggetti: {object_types}, Eventi: {events_attrs}, Attributi/Oggetto: {object_attrs}")
+    # LOG_DISABLED: logger.info(f"DEBUG: `object_attrs` costruito correttamente:\n{json.dumps(object_attrs, indent=4)}")
+    # LOG_DISABLED: logger.info(f"Configurazione calcolata - Oggetti: {object_types}, Eventi: {events_attrs}, Attributi/Oggetto: {object_attrs}")
 
     # 🟢 3. Conversione OCEL
     start_time = time.time()
@@ -228,7 +232,7 @@ def run_validation(event_attr_pct, object_pct, object_attr_pct, log_pct):
             object_attrs=object_attrs
         )
     except Exception as e:
-        logger.error(f"❌ Errore durante `set_ocel_parameters`: {str(e)}")
+        logger.error(f"Errore durante `set_ocel_parameters`: {str(e)}")
     ocel_size_kb_created = get_ocel_size_kb(data_service.ocel)
     ocel_time = round(time.time() - start_time, 4)
     # LOG_DISABLED: logger.info(f"🔀 OCEL creato - Dimensione: {ocel_size_kb_created} KB - Tempo: {ocel_time}s")
@@ -247,12 +251,12 @@ def run_validation(event_attr_pct, object_pct, object_attr_pct, log_pct):
         data_service.o2o_enrichment()
         if data_service.ocel_o2o is None:
             logger.error(
-                "❌ OCEL O2O enrichment non riuscito, `ocel_o2o` è None.")
+                "OCEL O2O enrichment non riuscito, `ocel_o2o` è None.")
             raise RuntimeError("Errore: OCEL O2O non è stato creato.")
         o2o_mapping, num_o2o_relations = generate_o2o_mapping(data_service)
         if not o2o_mapping:
             logger.warning(
-                "⚠️ Nessuna relazione O2O trovata, salto il mapping.")
+                "Nessuna relazione O2O trovata, salto il mapping.")
         data_service.set_o2o_relationship_qualifiers(o2o_mapping)
         ocel_size_kb_o2o = get_ocel_size_kb(data_service.ocel)
         o2o_time = round(time.time() - start_time, 4)
@@ -295,7 +299,7 @@ def run_validation(event_attr_pct, object_pct, object_attr_pct, log_pct):
 
     append_result(results[0])
     logger.info(
-        f"✅ Validazione completata! Risultati salvati in {RESULTS_FILE}")
+        f"Validazione completata! Risultati salvati in {RESULTS_FILE}")
 
 
 if __name__ == "__main__":
@@ -312,7 +316,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.event_attr_pct > 100 or args.object_pct > 100 or args.object_attr_pct > 100:
-        logger.error("❌ Le percentuali non possono superare il 100%")
+        logger.error("Le percentuali non possono superare il 100%")
         exit(1)
 
     run_validation(args.event_attr_pct, args.object_pct,
