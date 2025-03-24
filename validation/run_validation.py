@@ -51,7 +51,8 @@ def generate_o2o_mapping(data_service):
         for _, row in unique_pairs.iterrows()
     }
 
-    # LOG_DISABLED: logger.info(f"Mappatura O2O generata ({len(o2o_mapping)} mapping da {total_relations} relazioni totali)")
+    logger.info(
+        f"Mappatura O2O generata ({len(o2o_mapping)} mapping da {total_relations} relazioni totali)")
     return o2o_mapping, total_relations
 
 
@@ -83,14 +84,21 @@ def get_ocel_size_kb(ocel):
         return 0.00
 
     df_dict = get_ocel_dataframes(ocel)
-    total_size = sum(df.memory_usage(deep=True).sum() /
-                     1024 for df in df_dict.values())
+    logger.info(f"DataFrames trovati nell'OCEL: {list(df_dict.keys())}")
+
+    total_size = 0
+    for name, df in df_dict.items():
+        size_kb = df.memory_usage(deep=True).sum() / 1024
+        logger.info(f"DataFrame '{name}' size: {size_kb:.2f} KB")
+        total_size += size_kb
+
     return round(total_size, 2)
 
 
 def generate_random_string(length=5):
     """Genera una stringa casuale alfanumerica di lunghezza specificata."""
-    return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+    # return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+    return "aaaaa"
 
 
 def generate_e2o_mapping(data_service):
@@ -258,7 +266,7 @@ def run_validation(event_attr_pct, object_pct, object_attr_pct, log_pct):
             logger.warning(
                 "Nessuna relazione O2O trovata, salto il mapping.")
         data_service.set_o2o_relationship_qualifiers(o2o_mapping)
-        ocel_size_kb_o2o = get_ocel_size_kb(data_service.ocel)
+        ocel_size_kb_o2o = get_ocel_size_kb(data_service.ocel_o2o)
         o2o_time = round(time.perf_counter() - start_time, 4)
         # LOG_DISABLED: logger.info(f"🔁 Relazioni O2O impostate - Tempo: {o2o_time}s")
     except Exception as e:
@@ -286,7 +294,7 @@ def run_validation(event_attr_pct, object_pct, object_attr_pct, log_pct):
             "num_o2o_relations": num_o2o_relations,
             "ocel_size_kb_created": ocel_size_kb_created,
             "ocel_size_kb_e2o": ocel_size_kb_e2o,
-            "ocel_size_kb_o2o ": ocel_size_kb_o2o
+            "ocel_size_kb_o2o": ocel_size_kb_o2o
         },
         "timings": {
             "load_time": load_time,

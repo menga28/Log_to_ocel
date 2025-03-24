@@ -135,8 +135,7 @@ class DataService:
         self.df_normalized = pd.concat(normalized_dfs, ignore_index=True)
         self.df_size_normalized = self.df_normalized.memory_usage(
             deep=True).sum() / 1024
-        logger.info(
-            f"DEBUG: DataFrame normalizzato con {len(self.df_normalized)} righe e colonne: {self.df_normalized.columns.tolist()}")
+        # logger.info(f"DEBUG: DataFrame normalizzato con {len(self.df_normalized)} righe e colonne: {self.df_normalized.columns.tolist()}")
         return self.df_normalized
 
     def set_ocel_parameters(self, activity, timestamp, object_types, events_attrs, object_attrs):
@@ -162,8 +161,7 @@ class DataService:
                 f"Timestamp column '{timestamp}' not found in DataFrame.")
 
         logger.info(f"DEBUG: Object types passati a OCEL: {object_types}")
-        logger.info(
-            f"DEBUG: Colonne disponibili nel DataFrame normalizzato: {self.df_normalized.columns.tolist()}")
+        # logger.info(f"DEBUG: Colonne disponibili nel DataFrame normalizzato: {self.df_normalized.columns.tolist()}")
 
         try:
             self.ocel = pm4py.convert.convert_log_to_ocel(
