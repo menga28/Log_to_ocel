@@ -7,7 +7,14 @@ document.addEventListener("DOMContentLoaded", function () {
   const SELECTOR_WIDTH = "w-64";
 
   // Dichiarazioni per aggiornamenti dinamici dopo la creazione dell'OCEL.
-  let availableTypes = ["txHash", "inputs_inputName", "sender", "contractAddress", "gasUsed", "activity"];
+  let availableTypes = [
+    "txHash",
+    "inputs_inputName",
+    "sender",
+    "contractAddress",
+    "gasUsed",
+    "activity",
+  ];
   let availableActivities = ["approve", "sendFrom", "transfer"];
 
   const fileInput = document.getElementById("fileInput");
@@ -23,7 +30,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const container = document.getElementById("qualifierContainer");
     let rows = container.getElementsByClassName("qualifier-row");
     let data = [];
-    Array.from(rows).forEach(row => {
+    Array.from(rows).forEach((row) => {
       let type = row.querySelector(".ocel-type-select").value;
       let activity = row.querySelector(".ocel-activity-select").value;
       let qualifier = row.querySelector(".qualifier-input").value;
@@ -42,7 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const container = document.getElementById("o2oContainer");
     let rows = container.getElementsByClassName("o2o-qualifier-row");
     let data = [];
-    Array.from(rows).forEach(row => {
+    Array.from(rows).forEach((row) => {
       let source = row.querySelector(".ocel-oid-select").value;
       let target = row.querySelector(".ocel-oid2-select").value;
       let qualifier = row.querySelector(".o2o-qualifier-input").value;
@@ -82,14 +89,34 @@ document.addEventListener("DOMContentLoaded", function () {
 
   sampleBtn.addEventListener("click", async function () {
     try {
-      const response = await fetch("/static/pancacke100txs.json?cacheBust=" + Date.now());
-      if (!response.ok) throw new Error("Failed to load sample");
-      const data = await response.json();
-      displayData(data);
+      const response = await fetch("/load_sample", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        let errorMsg = "Failed to load sample data from server.";
+        try {
+          const errorData = await response.json();
+          errorMsg = errorData.error || errorMsg;
+        } catch (e) {}
+        throw new Error(`${errorMsg} (Status: ${response.status})`);
+      }
+
+      const previewData = await response.json();
+      console.log("Sample data loaded by backend:", previewData);
+
+      displayData(previewData);
       startMappingBtn.disabled = false;
     } catch (error) {
-      console.error("Error:", error);
-      alert("An error occurred while loading the sample file");
+      console.error("Error loading sample:", error);
+      alert(
+        "An error occurred while loading the sample file: " + error.message
+      );
+      startMappingBtn.disabled = true;
+      preview.classList.add("hidden");
     }
   });
 
@@ -97,7 +124,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function getSchemaFromObject(obj) {
     const schema = {};
-    Object.keys(obj).forEach(key => {
+    Object.keys(obj).forEach((key) => {
       const val = obj[key];
       if (Array.isArray(val)) {
         schema[key] = val.length > 0 ? [getSchemaFromObject(val[0])] : [];
@@ -169,15 +196,15 @@ document.addEventListener("DOMContentLoaded", function () {
     const tbody = table.querySelector("tbody");
     thead.innerHTML = "";
     tbody.innerHTML = "";
-    previewData.preview_columns.forEach(col => {
+    previewData.preview_columns.forEach((col) => {
       const th = document.createElement("th");
       th.textContent = col;
       th.className = "px-4 py-2 bg-gray-100 sticky top-0";
       thead.appendChild(th);
     });
-    previewData.sample_data.slice(0, 10).forEach(row => {
+    previewData.sample_data.slice(0, 10).forEach((row) => {
       const tr = document.createElement("tr");
-      previewData.preview_columns.forEach(col => {
+      previewData.preview_columns.forEach((col) => {
         const td = document.createElement("td");
         let content = row[col];
         if (typeof content === "object") {
@@ -193,25 +220,27 @@ document.addEventListener("DOMContentLoaded", function () {
       mappingPage.classList.add("hidden");
       document.getElementById("results").classList.remove("hidden");
     });
-    document.getElementById("continueBtn").addEventListener("click", async () => {
-      const selectedOptions = Array.from(columnsToNormalize.selectedOptions);
-      const indexes = selectedOptions.map(opt => parseInt(opt.value));
-      try {
-        const response = await fetch("/normalize", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ indexes })
-        });
-        if (!response.ok) throw new Error("Normalization failed");
-        const result = await response.json();
-        console.log(result.message);
-        mappingPage.classList.add("hidden");
-        setupSelectionPage(result.columns);
-      } catch (error) {
-        console.error("Error:", error);
-        alert(error.message);
-      }
-    });
+    document
+      .getElementById("continueBtn")
+      .addEventListener("click", async () => {
+        const selectedOptions = Array.from(columnsToNormalize.selectedOptions);
+        const indexes = selectedOptions.map((opt) => parseInt(opt.value));
+        try {
+          const response = await fetch("/normalize", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ indexes }),
+          });
+          if (!response.ok) throw new Error("Normalization failed");
+          const result = await response.json();
+          console.log(result.message);
+          mappingPage.classList.add("hidden");
+          setupSelectionPage(result.columns);
+        } catch (error) {
+          console.error("Error:", error);
+          alert(error.message);
+        }
+      });
 
     // Popola la pagina Select Attributes.
     function setupSelectionPage(columns) {
@@ -220,11 +249,18 @@ document.addEventListener("DOMContentLoaded", function () {
       const activitySelect = document.getElementById("activitySelect");
       const timestampSelect = document.getElementById("timestampSelect");
       const objectTypesSelect = document.getElementById("objectTypesSelect");
-      const additionalEventAttributesSelect = document.getElementById("additionalEventAttributesSelect");
-      [activitySelect, timestampSelect, objectTypesSelect, additionalEventAttributesSelect].forEach(select => {
+      const additionalEventAttributesSelect = document.getElementById(
+        "additionalEventAttributesSelect"
+      );
+      [
+        activitySelect,
+        timestampSelect,
+        objectTypesSelect,
+        additionalEventAttributesSelect,
+      ].forEach((select) => {
         select.innerHTML = "";
       });
-      columns.forEach(col => {
+      columns.forEach((col) => {
         let option = document.createElement("option");
         option.value = col;
         option.textContent = col;
@@ -253,58 +289,72 @@ document.addEventListener("DOMContentLoaded", function () {
         width: "100%",
         closeOnSelect: false,
       });
-      const container = document.getElementById("objectTypeAttributesContainer");
+      const container = document.getElementById(
+        "objectTypeAttributesContainer"
+      );
       container.innerHTML = "";
       $(objectTypesSelect).on("change", function () {
         updateObjectTypeAttributesContainer(columns);
       });
-      document.getElementById("finalizeBtn").addEventListener("click", async function () {
-        const activity = activitySelect.value;
-        const timestamp = timestampSelect.value;
-        const object_types = Array.from(objectTypesSelect.selectedOptions).map(opt => opt.value);
-        const events_attrs = Array.from(additionalEventAttributesSelect.selectedOptions).map(opt => opt.value);
-        const container = document.getElementById("objectTypeAttributesContainer");
-        let object_attrs = {};
-        Array.from(container.children).forEach(child => {
-          const objType = child.id.replace("objectType_", "");
-          const select = child.querySelector("select");
-          const attrs = Array.from(select.selectedOptions).map(opt => opt.value);
-          object_attrs[objType] = [objType, ...attrs];
-        });
-        try {
-          const response = await fetch("/set_ocel_parameters", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              activity,
-              timestamp,
-              object_types,
-              events_attrs,
-              object_attrs
-            })
+      document
+        .getElementById("finalizeBtn")
+        .addEventListener("click", async function () {
+          const activity = activitySelect.value;
+          const timestamp = timestampSelect.value;
+          const object_types = Array.from(
+            objectTypesSelect.selectedOptions
+          ).map((opt) => opt.value);
+          const events_attrs = Array.from(
+            additionalEventAttributesSelect.selectedOptions
+          ).map((opt) => opt.value);
+          const container = document.getElementById(
+            "objectTypeAttributesContainer"
+          );
+          let object_attrs = {};
+          Array.from(container.children).forEach((child) => {
+            const objType = child.id.replace("objectType_", "");
+            const select = child.querySelector("select");
+            const attrs = Array.from(select.selectedOptions).map(
+              (opt) => opt.value
+            );
+            object_attrs[objType] = [objType, ...attrs];
           });
-          if (!response.ok) throw new Error("Setting OCEL parameters failed");
-          const result = await response.json();
-          console.log(result.message);
-          // Aggiorna i qualificatori dinamici con quelli ricevuti dal backend.
-          availableTypes = result.available_types;
-          availableActivities = result.available_activities;
-          document.getElementById("selectionPage").classList.add("hidden");
-          document.getElementById("qualifierPage").classList.remove("hidden");
-          initializeQualifierRows();
-        } catch (error) {
-          console.error("Error:", error);
-          alert(error.message);
-        }
-      });
+          try {
+            const response = await fetch("/set_ocel_parameters", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                activity,
+                timestamp,
+                object_types,
+                events_attrs,
+                object_attrs,
+              }),
+            });
+            if (!response.ok) throw new Error("Setting OCEL parameters failed");
+            const result = await response.json();
+            console.log(result.message);
+            // Aggiorna i qualificatori dinamici con quelli ricevuti dal backend.
+            availableTypes = result.available_types;
+            availableActivities = result.available_activities;
+            document.getElementById("selectionPage").classList.add("hidden");
+            document.getElementById("qualifierPage").classList.remove("hidden");
+            initializeQualifierRows();
+          } catch (error) {
+            console.error("Error:", error);
+            alert(error.message);
+          }
+        });
     }
   }
 
   function updateObjectTypeAttributesContainer(columns) {
     const objectTypesSelect = document.getElementById("objectTypesSelect");
     const container = document.getElementById("objectTypeAttributesContainer");
-    const selectedObjectTypes = Array.from(objectTypesSelect.selectedOptions).map(opt => opt.value);
-    selectedObjectTypes.forEach(type => {
+    const selectedObjectTypes = Array.from(
+      objectTypesSelect.selectedOptions
+    ).map((opt) => opt.value);
+    selectedObjectTypes.forEach((type) => {
       if (!document.getElementById("objectType_" + type)) {
         const div = document.createElement("div");
         div.id = "objectType_" + type;
@@ -315,7 +365,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const select = document.createElement("select");
         select.multiple = true;
         select.className = "w-full p-2 border rounded object-attributes-select";
-        columns.forEach(col => {
+        columns.forEach((col) => {
           const option = document.createElement("option");
           option.value = col;
           option.textContent = col;
@@ -332,7 +382,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
       }
     });
-    Array.from(container.children).forEach(child => {
+    Array.from(container.children).forEach((child) => {
       const type = child.id.replace("objectType_", "");
       if (!selectedObjectTypes.includes(type)) {
         container.removeChild(child);
@@ -368,7 +418,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let savedData = loadE2OData();
     if (savedData && savedData.length > 0) {
-      savedData.forEach(item => addQualifierRow(item));
+      savedData.forEach((item) => addQualifierRow(item));
     } else {
       addQualifierRow();
     }
@@ -380,8 +430,9 @@ document.addEventListener("DOMContentLoaded", function () {
     rowDiv.className = "qualifier-row mb-2 flex space-x-2 items-center";
 
     const typeSelect = document.createElement("select");
-    typeSelect.className = "ocel-type-select p-2 border rounded " + SELECTOR_WIDTH;
-    availableTypes.forEach(type => {
+    typeSelect.className =
+      "ocel-type-select p-2 border rounded " + SELECTOR_WIDTH;
+    availableTypes.forEach((type) => {
       const option = document.createElement("option");
       option.value = type;
       option.textContent = type;
@@ -389,8 +440,9 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     const activitySelect = document.createElement("select");
-    activitySelect.className = "ocel-activity-select p-2 border rounded " + SELECTOR_WIDTH;
-    availableActivities.forEach(act => {
+    activitySelect.className =
+      "ocel-activity-select p-2 border rounded " + SELECTOR_WIDTH;
+    availableActivities.forEach((act) => {
       const option = document.createElement("option");
       option.value = act;
       option.textContent = act;
@@ -400,7 +452,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const qualifierInput = document.createElement("input");
     qualifierInput.type = "text";
     qualifierInput.placeholder = "Enter qualifier";
-    qualifierInput.className = "qualifier-input p-2 border rounded " + SELECTOR_WIDTH;
+    qualifierInput.className =
+      "qualifier-input p-2 border rounded " + SELECTOR_WIDTH;
 
     if (savedItem) {
       typeSelect.value = savedItem.type;
@@ -408,15 +461,16 @@ document.addEventListener("DOMContentLoaded", function () {
       qualifierInput.value = savedItem.qualifier;
     }
 
-    [typeSelect, activitySelect, qualifierInput].forEach(el => {
+    [typeSelect, activitySelect, qualifierInput].forEach((el) => {
       el.addEventListener("change", saveE2OData);
       el.addEventListener("input", saveE2OData);
     });
 
     const deleteButton = document.createElement("button");
     deleteButton.textContent = "X";
-    deleteButton.className = "delete-row-button p-2 bg-red-500 text-white rounded";
-    deleteButton.addEventListener("click", function() {
+    deleteButton.className =
+      "delete-row-button p-2 bg-red-500 text-white rounded";
+    deleteButton.addEventListener("click", function () {
       rowDiv.remove();
       saveE2OData();
     });
@@ -430,7 +484,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     qualifierInput.addEventListener("input", function () {
       const rows = container.getElementsByClassName("qualifier-row");
-      if (rows[rows.length - 1] === rowDiv && qualifierInput.value.trim() !== "") {
+      if (
+        rows[rows.length - 1] === rowDiv &&
+        qualifierInput.value.trim() !== ""
+      ) {
         addQualifierRow();
       }
       saveE2OData();
@@ -445,7 +502,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Header per O2O
     const headerRow = document.createElement("div");
-    headerRow.className = "o2o-header flex items-center space-x-2 mb-2 font-bold";
+    headerRow.className =
+      "o2o-header flex items-center space-x-2 mb-2 font-bold";
     const headerSource = document.createElement("div");
     headerSource.textContent = "Object Source";
     headerSource.className = `${SELECTOR_WIDTH} text-center`;
@@ -465,7 +523,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let savedData = loadO2OData();
     if (savedData && savedData.length > 0) {
-      savedData.forEach(item => addO2OQualifierRow(item));
+      savedData.forEach((item) => addO2OQualifierRow(item));
     } else {
       fetchO2OObjects();
     }
@@ -473,16 +531,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function fetchO2OObjects() {
     fetch("/get_o2o_objects")
-      .then(response => {
-        if (!response.ok) throw new Error("Errore nel recupero degli oggetti O2O");
+      .then((response) => {
+        if (!response.ok)
+          throw new Error("Errore nel recupero degli oggetti O2O");
         return response.json();
       })
-      .then(data => {
+      .then((data) => {
         const oids = data.oids || [];
         const oids_2 = data.oids_2 || [];
         addO2OQualifierRow(oids, oids_2);
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("Errore:", error);
         alert(error.message);
       });
@@ -495,7 +554,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const rowDiv = document.createElement("div");
     rowDiv.className = "o2o-qualifier-row flex items-center space-x-2 mb-2";
     let oids, oids_2, savedItem;
-    if (typeof param2OrSaved === "object" && param2OrSaved.source !== undefined) {
+    if (
+      typeof param2OrSaved === "object" &&
+      param2OrSaved.source !== undefined
+    ) {
       savedItem = param2OrSaved;
       oids = window.currentOids || [];
       oids_2 = window.currentOids2 || [];
@@ -506,16 +568,18 @@ document.addEventListener("DOMContentLoaded", function () {
       window.currentOids2 = oids_2;
     }
     const sourceSelect = document.createElement("select");
-    sourceSelect.className = "ocel-oid-select p-2 border rounded " + SELECTOR_WIDTH;
-    oids.forEach(oid => {
+    sourceSelect.className =
+      "ocel-oid-select p-2 border rounded " + SELECTOR_WIDTH;
+    oids.forEach((oid) => {
       const option = document.createElement("option");
       option.value = oid;
       option.textContent = oid;
       sourceSelect.appendChild(option);
     });
     const targetSelect = document.createElement("select");
-    targetSelect.className = "ocel-oid2-select p-2 border rounded " + SELECTOR_WIDTH;
-    oids_2.forEach(oid2 => {
+    targetSelect.className =
+      "ocel-oid2-select p-2 border rounded " + SELECTOR_WIDTH;
+    oids_2.forEach((oid2) => {
       const option = document.createElement("option");
       option.value = oid2;
       option.textContent = oid2;
@@ -524,20 +588,22 @@ document.addEventListener("DOMContentLoaded", function () {
     const qualifierInput = document.createElement("input");
     qualifierInput.type = "text";
     qualifierInput.placeholder = "Enter qualifier";
-    qualifierInput.className = "o2o-qualifier-input p-2 border rounded " + SELECTOR_WIDTH;
+    qualifierInput.className =
+      "o2o-qualifier-input p-2 border rounded " + SELECTOR_WIDTH;
     if (savedItem) {
       sourceSelect.value = savedItem.source;
       targetSelect.value = savedItem.target;
       qualifierInput.value = savedItem.qualifier;
     }
-    [sourceSelect, targetSelect, qualifierInput].forEach(el => {
+    [sourceSelect, targetSelect, qualifierInput].forEach((el) => {
       el.addEventListener("change", saveO2OData);
       el.addEventListener("input", saveO2OData);
     });
     const deleteButton = document.createElement("button");
     deleteButton.textContent = "X";
-    deleteButton.className = "delete-row-button p-2 bg-red-500 text-white rounded";
-    deleteButton.addEventListener("click", function() {
+    deleteButton.className =
+      "delete-row-button p-2 bg-red-500 text-white rounded";
+    deleteButton.addEventListener("click", function () {
       rowDiv.remove();
       saveO2OData();
     });
@@ -549,9 +615,12 @@ document.addEventListener("DOMContentLoaded", function () {
     rowDiv.appendChild(qualifierInput);
     rowDiv.appendChild(deleteButtonContainer);
     container.appendChild(rowDiv);
-    qualifierInput.addEventListener("input", function() {
+    qualifierInput.addEventListener("input", function () {
       const rows = container.getElementsByClassName("o2o-qualifier-row");
-      if (rows[rows.length - 1] === rowDiv && qualifierInput.value.trim() !== "") {
+      if (
+        rows[rows.length - 1] === rowDiv &&
+        qualifierInput.value.trim() !== ""
+      ) {
         addO2OQualifierRow(oids, oids_2);
       }
       saveO2OData();
@@ -560,37 +629,39 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ---------------- Bottoni e Navigazione ----------------
 
-  document.getElementById("submitQualificationsBtn").addEventListener("click", async function () {
-    // Salva i dati E2O prima di inviare
-    saveE2OData();
-    try {
-      const response = await fetch("/set_e2o_relationship_qualifiers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ qualifier_map: buildE2OQualifierMap() })
-      });
-      if (!response.ok) throw new Error("Errore nella configurazione di E2O");
-      const result = await response.json();
-      console.log(result.message);
-      // Naviga alla pagina O2O
-      document.getElementById("qualifierPage").classList.add("hidden");
-      document.getElementById("o2oPage").classList.remove("hidden");
-      // Se non ci sono già dati salvati per O2O, inizializza la pagina O2O.
-      const savedO2O = loadO2OData();
-      if (!savedO2O || savedO2O.length === 0) {
-        initializeO2OQualifierRows();
+  document
+    .getElementById("submitQualificationsBtn")
+    .addEventListener("click", async function () {
+      // Salva i dati E2O prima di inviare
+      saveE2OData();
+      try {
+        const response = await fetch("/set_e2o_relationship_qualifiers", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ qualifier_map: buildE2OQualifierMap() }),
+        });
+        if (!response.ok) throw new Error("Errore nella configurazione di E2O");
+        const result = await response.json();
+        console.log(result.message);
+        // Naviga alla pagina O2O
+        document.getElementById("qualifierPage").classList.add("hidden");
+        document.getElementById("o2oPage").classList.remove("hidden");
+        // Se non ci sono già dati salvati per O2O, inizializza la pagina O2O.
+        const savedO2O = loadO2OData();
+        if (!savedO2O || savedO2O.length === 0) {
+          initializeO2OQualifierRows();
+        }
+      } catch (error) {
+        console.error("Errore:", error);
+        alert(error.message);
       }
-    } catch (error) {
-      console.error("Errore:", error);
-      alert(error.message);
-    }
-  });
+    });
 
   function buildE2OQualifierMap() {
     const container = document.getElementById("qualifierContainer");
     const rows = container.getElementsByClassName("qualifier-row");
     let qualifierMap = {};
-    Array.from(rows).forEach(row => {
+    Array.from(rows).forEach((row) => {
       const type = row.querySelector(".ocel-type-select").value;
       const activity = row.querySelector(".ocel-activity-select").value;
       const qualifier = row.querySelector(".qualifier-input").value.trim();
@@ -602,38 +673,40 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // Modifica qui: Export Complete Mapping ora scarica il file OCEL aggiornato
-  document.getElementById("exportO2OBtn").addEventListener("click", async function () {
-    saveO2OData();
-    try {
-      // Effettua la POST per aggiornare i qualificatori O2O
-      const response = await fetch("/set_o2o_relationship_qualifiers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ qualifier_map: buildO2OQualifierMap() })
-      });
-      if (!response.ok) throw new Error("Errore nella configurazione di O2O");
+  document
+    .getElementById("exportO2OBtn")
+    .addEventListener("click", async function () {
+      saveO2OData();
+      try {
+        // Effettua la POST per aggiornare i qualificatori O2O
+        const response = await fetch("/set_o2o_relationship_qualifiers", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ qualifier_map: buildO2OQualifierMap() }),
+        });
+        if (!response.ok) throw new Error("Errore nella configurazione di O2O");
 
-      // Ora, supponendo che il server restituisca il file OCEL aggiornato come attachment,
-      // otteniamo il blob e lo scarichiamo.
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "ocel_updated.jsonocel"; // Nome del file che verrà scaricato
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    } catch (error) {
-      console.error("Errore:", error);
-      alert(error.message);
-    }
-  });
+        // Ora, supponendo che il server restituisca il file OCEL aggiornato come attachment,
+        // otteniamo il blob e lo scarichiamo.
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "ocel_updated.jsonocel"; // Nome del file che verrà scaricato
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } catch (error) {
+        console.error("Errore:", error);
+        alert(error.message);
+      }
+    });
 
   function buildO2OQualifierMap() {
     const container = document.getElementById("o2oContainer");
     const rows = container.getElementsByClassName("o2o-qualifier-row");
     let qualifierMap = {};
-    Array.from(rows).forEach(row => {
+    Array.from(rows).forEach((row) => {
       const oid = row.querySelector(".ocel-oid-select").value;
       const oid2 = row.querySelector(".ocel-oid2-select").value;
       const qualifier = row.querySelector(".o2o-qualifier-input").value.trim();
@@ -644,18 +717,22 @@ document.addEventListener("DOMContentLoaded", function () {
     return qualifierMap;
   }
 
-  document.getElementById("backFromO2OBtn").addEventListener("click", function () {
-    // Salva i dati O2O prima di tornare
-    saveO2OData();
-    document.getElementById("o2oPage").classList.add("hidden");
-    document.getElementById("qualifierPage").classList.remove("hidden");
-  });
+  document
+    .getElementById("backFromO2OBtn")
+    .addEventListener("click", function () {
+      // Salva i dati O2O prima di tornare
+      saveO2OData();
+      document.getElementById("o2oPage").classList.add("hidden");
+      document.getElementById("qualifierPage").classList.remove("hidden");
+    });
 
-  document.getElementById("backFromQualifierBtn").addEventListener("click", function () {
-    // Naviga indietro dalla pagina qualifier senza cancellare i dati salvati
-    document.getElementById("qualifierPage").classList.add("hidden");
-    document.getElementById("selectionPage").classList.remove("hidden");
-  });
+  document
+    .getElementById("backFromQualifierBtn")
+    .addEventListener("click", function () {
+      // Naviga indietro dalla pagina qualifier senza cancellare i dati salvati
+      document.getElementById("qualifierPage").classList.add("hidden");
+      document.getElementById("selectionPage").classList.remove("hidden");
+    });
 
   startMappingBtn.addEventListener("click", async function () {
     try {
@@ -676,43 +753,53 @@ document.addEventListener("DOMContentLoaded", function () {
     if (resultsDiv) resultsDiv.classList.remove("hidden");
   });
 
-  document.getElementById("backToMappingBtn").addEventListener("click", function () {
-    document.getElementById("selectionPage").classList.add("hidden");
-    mappingPage.classList.remove("hidden");
-  });
+  document
+    .getElementById("backToMappingBtn")
+    .addEventListener("click", function () {
+      document.getElementById("selectionPage").classList.add("hidden");
+      mappingPage.classList.remove("hidden");
+    });
 
   document.getElementById("continueBtn").addEventListener("click", function () {
     console.log(
       "Selected columns:",
-      Array.from(document.getElementById("columnsToNormalize").selectedOptions).map(opt => opt.textContent)
+      Array.from(
+        document.getElementById("columnsToNormalize").selectedOptions
+      ).map((opt) => opt.textContent)
     );
   });
 
-  document.getElementById("oldFinalizeBtn")?.addEventListener("click", function () {
-    const mapping = {};
-    const activitySelect = document.getElementById("activitySelect");
-    const timestampSelect = document.getElementById("timestampSelect");
-    if (activitySelect.value) {
-      mapping["activity"] = [activitySelect.value];
-    }
-    if (timestampSelect.value) {
-      mapping["timestamp"] = [timestampSelect.value];
-    }
-    const container = document.getElementById("objectTypeAttributesContainer");
-    Array.from(container.children).forEach(child => {
-      const objectType = child.id.replace("objectType_", "");
-      const select = child.querySelector("select");
-      const attributes = Array.from(select.selectedOptions).map(opt => opt.value);
-      mapping[objectType] = [objectType, ...attributes];
+  document
+    .getElementById("oldFinalizeBtn")
+    ?.addEventListener("click", function () {
+      const mapping = {};
+      const activitySelect = document.getElementById("activitySelect");
+      const timestampSelect = document.getElementById("timestampSelect");
+      if (activitySelect.value) {
+        mapping["activity"] = [activitySelect.value];
+      }
+      if (timestampSelect.value) {
+        mapping["timestamp"] = [timestampSelect.value];
+      }
+      const container = document.getElementById(
+        "objectTypeAttributesContainer"
+      );
+      Array.from(container.children).forEach((child) => {
+        const objectType = child.id.replace("objectType_", "");
+        const select = child.querySelector("select");
+        const attributes = Array.from(select.selectedOptions).map(
+          (opt) => opt.value
+        );
+        mapping[objectType] = [objectType, ...attributes];
+      });
+      console.log("Final mapping:", mapping);
     });
-    console.log("Final mapping:", mapping);
-  });
 
   const dropZone = document.querySelector("label");
-  ["dragenter", "dragover"].forEach(eventName => {
+  ["dragenter", "dragover"].forEach((eventName) => {
     dropZone.addEventListener(eventName, highlight, false);
   });
-  ["dragleave", "drop"].forEach(eventName => {
+  ["dragleave", "drop"].forEach((eventName) => {
     dropZone.addEventListener(eventName, unhighlight, false);
   });
   function highlight(e) {

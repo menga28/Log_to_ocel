@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, jsonify, send_file
+from flask import Blueprint, render_template, request, jsonify, send_file, current_app
 from app.services.file_service import FileService
 from app.services.data_service import DataService
 import os
@@ -19,6 +19,50 @@ data_service = DataService()
 def index():
     logger.info("Rendering index page")
     return render_template('index.html')
+
+
+@main_bp.route('/load_sample', methods=['POST'])
+def load_sample_data():
+    logger.info("Load sample endpoint called")
+    try:
+        sample_filename = 'pancacke100txs.json'
+        sample_filepath = os.path.join(
+            current_app.static_folder, sample_filename)
+        logger.info(f"Attempting to load sample file from: {sample_filepath}")
+
+        if not os.path.exists(sample_filepath):
+            logger.error(f"Sample file not found at: {sample_filepath}")
+            return jsonify({'error': 'Sample file not found on server.'}), 404
+
+        df = data_service.load_dataframe(sample_filepath)
+
+        if df is not None:
+            logger.info(
+                f"Sample file '{sample_filename}' loaded successfully into DataService.")
+
+            preview_data = data_service.get_preview_data()
+            if preview_data:
+                logger.info("Preview data for sample generated successfully.")
+
+                return jsonify({
+                    "message": "Sample loaded successfully",
+                    "nested_columns": data_service.nested_columns,
+                    "preview_columns": preview_data['columns'],
+                    "sample_data": preview_data['data']
+                }), 200
+            else:
+                logger.error(
+                    "Failed to generate preview data after loading sample.")
+                return jsonify({'error': 'Failed to generate preview data.'}), 500
+        else:
+            logger.error(
+                f"Error loading sample DataFrame: {data_service.error}")
+            return jsonify({'error': f"Failed to load sample data: {data_service.error}"}), 400
+
+    except Exception as e:
+        logger.error(
+            f"Unexpected error in /load_sample: {str(e)}", exc_info=True)
+        return jsonify({'error': f'An internal error occurred: {str(e)}'}), 500
 
 
 @main_bp.route('/upload', methods=['POST'])
@@ -58,16 +102,21 @@ def upload_file():
 def get_preview():
     logger.info("Preview endpoint called")
     if data_service.df is None:
-        logger.error("No data loaded for preview")
-        return jsonify({"error": "No data loaded"}), 400
+        logger.warning("No data loaded for preview (df is None)") 
+        return jsonify({"error": "No data loaded. Please upload a file or load the sample first."}), 400
 
     preview_data = data_service.get_preview_data()
-    logger.info("Preview data retrieved successfully")
-    return jsonify({
-        "nested_columns": data_service.nested_columns,
-        "preview_columns": preview_data['columns'],
-        "sample_data": preview_data['data']
-    })
+    if preview_data:
+        logger.info("Preview data retrieved successfully")
+        return jsonify({
+            "nested_columns": data_service.nested_columns,
+            "preview_columns": preview_data['columns'],
+            "sample_data": preview_data['data']
+        })
+    else:
+        logger.error("Failed to get preview data even though df exists.")
+        return jsonify({"error": "Failed to retrieve preview data."}), 500
+
 
 
 @main_bp.route('/normalize', methods=['POST'])
