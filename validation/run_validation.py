@@ -123,19 +123,39 @@ def generate_e2o_mapping(data_service):
     return e2o_mapping, total_relations
 
 
-def assign_columns_to_objects_and_events(df_columns, num_objects, num_event_attr):
+def assign_columns_to_objects_and_events(df_columns, num_objects, num_event_attr, seed_params):
     """
-    Assegna le colonne del DataFrame normalizzato agli oggetti e agli eventi, 
-    escludendo 'activity' e 'timestamp'.
+    Assegna le colonne del DataFrame normalizzato agli oggetti e agli eventi,
+    escludendo 'activity' e 'timestamp'. Usa i parametri forniti per un seed riproducibile.
+
+    Args:
+        df_columns (list): Lista delle colonne tra cui scegliere.
+        num_objects (int): Numero di colonne da assegnare come tipi di oggetto.
+        num_event_attr (int): Numero di colonne da assegnare come attributi evento.
+        seed_params (dict): Dizionario contenente i parametri usati per generare il seed
+                            (es. {'event_attr_pct': ..., 'object_pct': ..., ...}).
     """
-    # random.seed(1999)
+
+    seed_string = (
+        f"event_attr_pct={seed_params['event_attr_pct']}-"
+        f"object_pct={seed_params['object_pct']}-"
+        f"object_attr_pct={seed_params['object_attr_pct']}-"
+        f"log_pct={seed_params['log_pct']}"
+    )
+
+    random.seed(seed_string)
+
     filtered_columns = [
         col for col in df_columns if col not in ["activity", "timestamp"]]
 
-    random.shuffle(filtered_columns)  # 💥 Mischia le colonne ad ogni esecuzione
+    random.shuffle(filtered_columns)
 
     object_types = filtered_columns[:num_objects]
     event_attrs = filtered_columns[num_objects:num_objects + num_event_attr]
+
+    logger.info(
+        f"Seed: '{seed_string}' -> Object Types: {object_types}, Event Attrs: {event_attrs}")
+
     return object_types, event_attrs
 
 
@@ -217,17 +237,28 @@ def run_validation(event_attr_pct, object_pct, object_attr_pct, log_pct):
         int((object_pct / 100) * len(normalized_columns)), len(normalized_columns))
     num_event_attr = min(int((event_attr_pct / 100) *
                          len(normalized_columns)), len(normalized_columns) - num_objects)
+
+    seed_parameters_for_shuffle = {
+        "event_attr_pct": event_attr_pct,
+        "object_pct": object_pct,
+        "object_attr_pct": object_attr_pct,
+        "log_pct": log_pct
+    }
+
     object_types, events_attrs = assign_columns_to_objects_and_events(
-        normalized_columns, num_objects, num_event_attr)
+        normalized_columns, num_objects, num_event_attr, seed_parameters_for_shuffle
+    )
+
     num_object_attr = min(int((object_attr_pct / 100) *
                           len(events_attrs)), len(events_attrs))
+    num_object_attr = min(int(round((object_attr_pct / 100) *
+                          len(events_attrs))), len(events_attrs)) if events_attrs else 0
+
     object_attrs = {
         obj: [obj] + random.sample(events_attrs,
                                    num_object_attr) if num_object_attr > 0 else [obj]
         for obj in object_types
     }
-    # LOG_DISABLED: logger.info(f"DEBUG: `object_attrs` costruito correttamente:\n{json.dumps(object_attrs, indent=4)}")
-    # LOG_DISABLED: logger.info(f"Configurazione calcolata - Oggetti: {object_types}, Eventi: {events_attrs}, Attributi/Oggetto: {object_attrs}")
 
     # 🟢 3. Conversione OCEL
     start_time = time.perf_counter()
